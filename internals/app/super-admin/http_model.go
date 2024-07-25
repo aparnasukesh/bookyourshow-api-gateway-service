@@ -13,3 +13,17 @@ type Admin struct {
 	Gender      string    `json:"gender"`
 	Otp         string    `json:"otp"`
 }
+
+type AdminRequestResponse struct {
+	Email string `json:"email" validate:"email,required"`
+}
+
+type Movie struct {
+	Title       string  `gorm:"type:varchar(100);not null"`
+	Description string  `gorm:"type:text"`
+	Duration    int     `gorm:"not null"`
+	Genre       string  `gorm:"type:varchar(50)"`
+	ReleaseDate string  `gorm:"not null"`
+	Rating      float64 `gorm:"type:decimal(3,1)"`
+	Language    string  `gorm:"type:varchar(100);not null"`
+}

@@ -26,34 +26,25 @@ func (m resources) MountRoutes(r *gin.Engine) {
 	if err != nil {
 		log.Fatalf("Error happened while user module initialization: %v", err)
 	}
-	// adminHandler, err := di.InitAdminModule(m.cfg)
-	// if err != nil {
-	// 	log.Fatalf("Error happened while admin module initialization: %v", err)
-	// }
-	// superAdminHandler, err := di.InitSuperAdminModule(m.cfg)
-	// if err != nil {
-	// 	log.Fatalf("Error happend while super admin module initialization: %v", err)
-	// }
-	authHandler, err := di.InitAuthMiddlewareModule(m.cfg)
+	adminHandler, err := di.InitAdminModule(m.cfg)
 	if err != nil {
-		log.Fatalf("Error happened while authmiddleware module initialization")
+		log.Fatalf("Error happened while admin module initialization: %v", err)
 	}
+	superAdminHandler, err := di.InitSuperAdminModule(m.cfg)
+	if err != nil {
+		log.Fatalf("Error happend while super admin module initialization: %v", err)
+	}
+
 	gateway := r.Group("/gateway")
 	{
-		// Apply middleware at the route group level
 		user := gateway.Group("/user")
-		user.Use(authHandler.UserAuthMiddleware()) // Apply authentication middleware
-		userHandler.MountRoutes(user)              // Mount routes
+		userHandler.MountRoutes(user)
 
-		// Similarly, add routes for admin and superadmin if required
+		admin := gateway.Group("/admin")
+		adminHandler.MountRoutes(admin)
 
-		// admin := gateway.Group("/admin")
-		// admin.Use(authHandler.UserAuthMiddleware())
-		// adminHandler.MountRoutes(admin)
-
-		// superAdmin := gateway.Group("/superadmin")
-		// superAdmin.Use(authHandler.UserAuthMiddleware())
-		// superAdminHandler.MountRoutes(superAdmin)
+		superAdmin := gateway.Group("/superadmin")
+		superAdminHandler.MountRoutes(superAdmin)
 	}
 
 }

@@ -68,15 +68,9 @@ func (s *service) Login(ctx context.Context, loginData *User) (string, error) {
 
 func (s *service) GetUserIDFromToken(ctx context.Context, authorization string) (int, error) {
 	tokenParts := strings.Split(authorization, "Bearer ")
-	var token string
-	res, err := s.auth.VerifyJWT(ctx, &auth.VerifyJWTRequest{
-		Token: tokenParts[1],
-	})
-	token = res.Token
-	if err != nil {
-		return 0, err
-	}
+	token := tokenParts[1]
 	var userId int
+
 	response, err := s.auth.GetUserID(ctx, &auth.GetUserIDRequest{
 		Token: token,
 	})

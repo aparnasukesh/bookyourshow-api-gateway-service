@@ -1,11 +1,14 @@
 package di
 
 import (
+	"log"
+
 	"github.com/aparnasukesh/api-gateway/config"
 	"github.com/aparnasukesh/api-gateway/internals/app/admin"
 	"github.com/aparnasukesh/api-gateway/internals/app/middleware"
 	superadmin "github.com/aparnasukesh/api-gateway/internals/app/super-admin"
 	"github.com/aparnasukesh/api-gateway/internals/app/user"
+	"github.com/aparnasukesh/api-gateway/pkg/common"
 	grpcclient "github.com/aparnasukesh/api-gateway/pkg/grpcClient"
 )
 
@@ -14,9 +17,17 @@ func InitUserModule(cfg config.Config) (*user.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	authHandler, err := InitAuthMiddlewareModule(cfg)
+	if err != nil {
+		log.Fatalf("Error happened while authmiddleware module initialization")
+	}
+
 	auth, err := grpcclient.NewJWT_TokenServiceClient(cfg.AuthSvcPort)
+	if err != nil {
+		log.Fatalf("Error happened while TokenServiceClient module initialization")
+	}
 	svc := user.NewService(pb, auth)
-	userHandler := user.NewHttpHandler(svc)
+	userHandler := user.NewHttpHandler(svc, authHandler)
 	return userHandler, nil
 }
 
@@ -25,27 +36,52 @@ func InitAdminModule(cfg config.Config) (*admin.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	svc := admin.NewService(pb)
-	adminHandler := admin.NewHttpHandler(svc)
+	authHandler, err := InitAuthMiddlewareModule(cfg)
+	if err != nil {
+		log.Fatalf("Error happpened while authmiddleware module initialization")
+	}
+	auth, err := grpcclient.NewJWT_TokenServiceClient(cfg.AuthSvcPort)
+	if err != nil {
+		log.Fatalf("Error happened while TokenServiceClient module initialization")
+	}
+	svc := admin.NewService(pb, auth)
+	adminHandler := admin.NewHttpHandler(svc, authHandler)
 	return adminHandler, nil
 }
 
 func InitSuperAdminModule(cfg config.Config) (*superadmin.Handler, error) {
-	pb, err := grpcclient.NewAdminGrpcClient(cfg.UserSvcPort)
+	pb, err := grpcclient.NewSuperAdminServiceClient(cfg.UserSvcPort)
 	if err != nil {
 		return nil, err
 	}
-	svc := superadmin.NewService(pb)
-	adminHandler := superadmin.NewHttpHandler(svc)
+	authHandler, err := InitAuthMiddlewareModule(cfg)
+	if err != nil {
+		log.Fatalf("Error happpened while authmiddleware module initialization")
+	}
+	auth, err := grpcclient.NewJWT_TokenServiceClient(cfg.AuthSvcPort)
+	if err != nil {
+		log.Fatalf("Error happened while TokenServiceClient module initialization")
+	}
+	movieBooking, err := grpcclient.NewMovieBookingGrpcClint(cfg.MovieBookingPort)
+	svc := superadmin.NewService(pb, auth, movieBooking)
+	adminHandler := superadmin.NewHttpHandler(svc, authHandler)
 	return adminHandler, nil
 }
 
-func InitAuthMiddlewareModule(cfg config.Config) (*middleware.Handler, error) {
-	pb, err := grpcclient.NewUserAuthServiceClient(cfg.AuthSvcPort)
+func InitAuthMiddlewareModule(cfg config.Config) (common.Middleware, error) {
+	userSvcClient, err := grpcclient.NewUserAuthServiceClient(cfg.AuthSvcPort)
 	if err != nil {
 		return nil, err
 	}
-	svc := middleware.NewService(pb)
+	adminSvcClient, err := grpcclient.NewAdminAuthServiceClient(cfg.AuthSvcPort)
+	if err != nil {
+		return nil, err
+	}
+	superAdminSvcClient, err := grpcclient.NewSuperAdminAuthServiceClient(cfg.AuthSvcPort)
+	if err != nil {
+		return nil, err
+	}
+	svc := middleware.NewService(userSvcClient, adminSvcClient, superAdminSvcClient)
 	middlewareHandler := middleware.NewHttpHandler(svc)
 	return middlewareHandler, nil
 }

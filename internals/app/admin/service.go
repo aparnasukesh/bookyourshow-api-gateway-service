@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 
+	"github.com/aparnasukesh/inter-communication/auth"
 	"github.com/aparnasukesh/inter-communication/user_admin"
 )
 
@@ -15,7 +16,7 @@ type service struct {
 	pb user_admin.AdminServiceClient
 }
 
-func NewService(pb user_admin.AdminServiceClient) Service {
+func NewService(pb user_admin.AdminServiceClient, auth auth.JWT_TokenServiceClient) Service {
 	return &service{
 		pb: pb,
 	}

@@ -5,6 +5,14 @@ import (
 	"google.golang.org/grpc"
 )
 
+func NewJWT_TokenServiceClient(port string) (pb.JWT_TokenServiceClient, error) {
+	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	return pb.NewJWT_TokenServiceClient(conn), nil
+}
+
 func NewUserAuthServiceClient(port string) (pb.UserAuthServiceClient, error) {
 	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
 	if err != nil {
@@ -13,10 +21,18 @@ func NewUserAuthServiceClient(port string) (pb.UserAuthServiceClient, error) {
 	return pb.NewUserAuthServiceClient(conn), nil
 }
 
-func NewJWT_TokenServiceClient(port string) (pb.JWT_TokenServiceClient, error) {
+func NewAdminAuthServiceClient(port string) (pb.AdminAuthServiceClient, error) {
 	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
-	return pb.NewJWT_TokenServiceClient(conn), nil
+	return pb.NewAdminAuthServiceClient(conn), nil
+}
+
+func NewSuperAdminAuthServiceClient(port string) (pb.SuperAdminAuthServiceClient, error) {
+	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	return pb.NewSuperAdminAuthServiceClient(conn), nil
 }

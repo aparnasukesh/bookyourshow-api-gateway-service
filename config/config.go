@@ -8,12 +8,13 @@ import (
 )
 
 type Config struct {
-	UserSvcPort string `mapstructure:"UserSvcPort" validate:"required"`
-	AuthSvcPort string `mapstructure:"AuthSvcPort" validate:"required"`
+	UserSvcPort      string `mapstructure:"UserSvcPort" validate:"required"`
+	AuthSvcPort      string `mapstructure:"AuthSvcPort" validate:"required"`
+	MovieBookingPort string `mapstructure:"MovieBookingPort" validate:"required"`
 }
 
 var envs = []string{
-	"UserSvcPort", "AuthSvcPort",
+	"UserSvcPort", "AuthSvcPort", "MovieBookingPort",
 }
 
 func LoadConfig() (Config, error) {
