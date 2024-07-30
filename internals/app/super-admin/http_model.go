@@ -18,12 +18,32 @@ type AdminRequestResponse struct {
 	Email string `json:"email" validate:"email,required"`
 }
 
+type AdminApproval struct {
+	Email      string `json:"email" validate:"email,required"`
+	IsVerified bool   `json:"is_verified"`
+}
+
+// Movies
 type Movie struct {
-	Title       string  `gorm:"type:varchar(100);not null"`
-	Description string  `gorm:"type:text"`
-	Duration    int     `gorm:"not null"`
-	Genre       string  `gorm:"type:varchar(50)"`
-	ReleaseDate string  `gorm:"not null"`
-	Rating      float64 `gorm:"type:decimal(3,1)"`
-	Language    string  `gorm:"type:varchar(100);not null"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Duration    int     `json:"duration"`
+	Genre       string  `json:"genre"`
+	ReleaseDate string  `json:"release_date"`
+	Rating      float64 `json:"rating"`
+	Language    string  `json:"language"`
+}
+
+// Theater
+type TheaterType struct {
+	TheaterTypeName string `json:"theater_type_name"`
+}
+
+type ScreenType struct {
+	ScreenTypeName string `json:"screen_type_name"`
+}
+
+type SeatCategory struct {
+	SeatCategoryName  string  `json:"seat_category_name"`
+	SeatCategoryPrice float64 `json:"seat_category_price"`
 }
