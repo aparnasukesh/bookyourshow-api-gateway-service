@@ -31,6 +31,22 @@ type Service interface {
 	GetTheaterTypeByName(ctx context.Context, name string) (*TheaterType, error)
 	UpdateTheaterType(ctx context.Context, id int, theaterType TheaterType) error
 	ListTheaterTypes(ctx context.Context) ([]TheaterType, error)
+	// Screen-Type
+	AddScreenType(ctx context.Context, data ScreenType) error
+	DeleteScreenTypeById(ctx context.Context, id int) error
+	DeleteScreenTypeByName(ctx context.Context, screenName string) error
+	GetScreenTypeByID(ctx context.Context, id int) (*ScreenType, error)
+	GetScreenTypeByName(ctx context.Context, name string) (*ScreenType, error)
+	UpdateScreenType(ctx context.Context, id int, screenType ScreenType) error
+	ListScreenTypes(ctx context.Context) ([]ScreenType, error)
+	// Seat category
+	AddSeatCategory(ctx context.Context, seatCategory SeatCategory) error
+	DeleteSeatCategoryByID(ctx context.Context, id int) error
+	DeleteSeatCategoryByName(ctx context.Context, name string) error
+	GetSeatCategoryByID(ctx context.Context, id int) (*SeatCategory, error)
+	GetSeatCategoryByName(ctx context.Context, name string) (*SeatCategory, error)
+	UpdateSeatCategory(ctx context.Context, id int, seatCategory SeatCategory) error
+	ListSeatCategories(ctx context.Context) ([]SeatCategory, error)
 }
 
 func NewService(pb user_admin.SuperAdminServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient) Service {
@@ -162,6 +178,7 @@ func (s *service) ListMovies(ctx context.Context) ([]Movie, error) {
 	return movies, nil
 }
 
+// Theater type
 func (s *service) AddTheaterType(ctx context.Context, data TheaterType) error {
 	_, err := s.userAdmin.AddTheaterType(ctx, &user_admin.AddTheaterTypeRequest{
 		TheaterTypeName: data.TheaterTypeName,
@@ -244,4 +261,184 @@ func (s *service) ListTheaterTypes(ctx context.Context) ([]TheaterType, error) {
 		theaterTypes = append(theaterTypes, theaterType)
 	}
 	return theaterTypes, nil
+}
+
+// Screen type
+func (s *service) AddScreenType(ctx context.Context, data ScreenType) error {
+	_, err := s.userAdmin.AddScreenType(ctx, &user_admin.AddScreenTypeRequest{
+		ScreenTypeName: data.ScreenTypeName,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) DeleteScreenTypeById(ctx context.Context, id int) error {
+	_, err := s.userAdmin.DeleteScreenTypeByID(ctx, &user_admin.DeleteScreenTypeRequest{
+		ScreenTypeId: int32(id),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) DeleteScreenTypeByName(ctx context.Context, screenName string) error {
+	_, err := s.userAdmin.DeleteScreenTypeByName(ctx, &user_admin.DeleteScreenTypeByNameRequest{
+		Name: screenName,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) GetScreenTypeByID(ctx context.Context, id int) (*ScreenType, error) {
+	response, err := s.userAdmin.GetScreenTypeByID(ctx, &user_admin.GetScreenTypeByIDRequest{
+		ScreenTypeId: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ScreenType{
+		ID:             id,
+		ScreenTypeName: response.ScreenType.ScreenTypeName,
+	}, nil
+}
+
+func (s *service) GetScreenTypeByName(ctx context.Context, name string) (*ScreenType, error) {
+	response, err := s.userAdmin.GetScreenTypeByName(ctx, &user_admin.GetScreenTypeByNameRequest{
+		Name: name,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ScreenType{
+		ID:             int(response.ScreenType.Id),
+		ScreenTypeName: name,
+	}, nil
+}
+
+func (s *service) UpdateScreenType(ctx context.Context, id int, screenType ScreenType) error {
+	_, err := s.userAdmin.UpdateScreenType(ctx, &user_admin.UpdateScreenTypeRequest{
+		Id:             int32(id),
+		ScreenTypeName: screenType.ScreenTypeName,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) ListScreenTypes(ctx context.Context) ([]ScreenType, error) {
+	response, err := s.userAdmin.ListScreenTypes(ctx, &user_admin.ListScreenTypesRequest{})
+	if err != nil {
+		return nil, err
+	}
+	screenTypes := []ScreenType{}
+
+	for _, res := range response.ScreenTypes {
+		screenType := ScreenType{
+			ID:             int(res.Id),
+			ScreenTypeName: res.ScreenTypeName,
+		}
+		screenTypes = append(screenTypes, screenType)
+	}
+	return screenTypes, nil
+}
+
+// seat category
+func (s *service) AddSeatCategory(ctx context.Context, seatCategory SeatCategory) error {
+	_, err := s.userAdmin.AddSeatCategory(ctx, &user_admin.AddSeatCategoryRequest{
+		SeatCategory: &user_admin.SeatCategory{
+			SeatCategoryName:  seatCategory.SeatCategoryName,
+			SeatCategoryPrice: seatCategory.SeatCategoryPrice,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) DeleteSeatCategoryByID(ctx context.Context, id int) error {
+	_, err := s.userAdmin.DeleteSeatCategoryByID(ctx, &user_admin.DeleteSeatCategoryRequest{
+		SeatCategoryId: int32(id),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) DeleteSeatCategoryByName(ctx context.Context, name string) error {
+	_, err := s.userAdmin.DeleteSeatCategoryByName(ctx, &user_admin.DeleteSeatCategoryByNameRequest{
+		Name: name,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) GetSeatCategoryByID(ctx context.Context, id int) (*SeatCategory, error) {
+	response, err := s.userAdmin.GetSeatCategoryByID(ctx, &user_admin.GetSeatCategoryByIDRequest{
+		SeatCategoryId: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &SeatCategory{
+		ID:                int(response.SeatCategory.Id),
+		SeatCategoryName:  response.SeatCategory.SeatCategoryName,
+		SeatCategoryPrice: response.SeatCategory.SeatCategoryPrice,
+	}, nil
+}
+
+func (s *service) GetSeatCategoryByName(ctx context.Context, name string) (*SeatCategory, error) {
+	response, err := s.userAdmin.GetSeatCategoryByName(ctx, &user_admin.GetSeatCategoryByNameRequest{
+		Name: name,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &SeatCategory{
+		ID:                int(response.SeatCategory.Id),
+		SeatCategoryName:  response.SeatCategory.SeatCategoryName,
+		SeatCategoryPrice: response.SeatCategory.SeatCategoryPrice,
+	}, nil
+}
+
+func (s *service) ListSeatCategories(ctx context.Context) ([]SeatCategory, error) {
+	response, err := s.userAdmin.ListSeatCategories(ctx, &user_admin.ListSeatCategoriesRequest{})
+	if err != nil {
+		return nil, err
+	}
+	seatCategories := []SeatCategory{}
+
+	for _, res := range response.SeatCategories {
+		seatCategory := SeatCategory{
+			ID:                int(res.Id),
+			SeatCategoryName:  res.SeatCategoryName,
+			SeatCategoryPrice: res.SeatCategoryPrice,
+		}
+		seatCategories = append(seatCategories, seatCategory)
+	}
+	return seatCategories, nil
+}
+
+func (s *service) UpdateSeatCategory(ctx context.Context, id int, seatCategory SeatCategory) error {
+	_, err := s.userAdmin.UpdateSeatCategory(ctx, &user_admin.UpdateSeatCategoryRequest{
+		Id: int32(id),
+		SeatCategory: &user_admin.SeatCategory{
+			Id:                int32(id),
+			SeatCategoryName:  seatCategory.SeatCategoryName,
+			SeatCategoryPrice: seatCategory.SeatCategoryPrice,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
