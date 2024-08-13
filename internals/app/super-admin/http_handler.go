@@ -35,8 +35,13 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.GET("/movie/:id", h.getMovieDetails)
 	auth.DELETE("/movie/:id", h.deleteMovie)
 
-	// auth.POST("/theater/type", h.addTheaterType)
-	// auth.DELETE("/theater/type/:id", h.deleteTheaterTypeById)
+	auth.POST("/theater/type", h.addTheaterType)
+	auth.DELETE("/theater/type/:id", h.deleteTheaterTypeById)
+	auth.DELETE("/theater/type", h.deleteTheaterTypeByName)
+	auth.GET("/theater/type/:id", h.getTheaterTypeByID)
+	auth.GET("/theater/type", h.getTheaterTypeByName)
+	auth.PUT("/theater/type/:id", h.updateTheaterType)
+	auth.GET("/theater/types", h.listTheaterTypes)
 }
 func (h *Handler) logIn(ctx *gin.Context) {
 	userData := Admin{}
@@ -83,9 +88,10 @@ func (h *Handler) adminApproval(ctx *gin.Context) {
 	h.response(ctx, http.StatusOK, "admin approval successfull")
 }
 
+// movies
 func (h *Handler) registerMovie(ctx *gin.Context) {
 	movie := &Movie{}
-	if err := ctx.ShouldBindBodyWithJSON(&movie); err != nil {
+	if err := ctx.ShouldBindJSON(&movie); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
@@ -109,7 +115,7 @@ func (h *Handler) updateMovie(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctx.ShouldBindBodyWithJSON(&movie); err != nil {
+	if err := ctx.ShouldBindJSON(&movie); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
@@ -164,4 +170,110 @@ func (h *Handler) deleteMovie(ctx *gin.Context) {
 		return
 	}
 	h.response(ctx, http.StatusOK, "movie deleted succesfully")
+}
+
+// theater-type
+func (h *Handler) addTheaterType(ctx *gin.Context) {
+	theaterType := &TheaterType{}
+	if err := ctx.ShouldBindJSON(&theaterType); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err := h.svc.AddTheaterType(ctx, *theaterType)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "theater type addedd successfully")
+}
+
+func (h *Handler) deleteTheaterTypeById(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteTheaterTypeById(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "theater type  deleted succesfully")
+}
+
+func (h *Handler) deleteTheaterTypeByName(ctx *gin.Context) {
+	theaterName := ctx.DefaultQuery("name", "")
+	err := h.svc.DeleteTheaterTypeByName(ctx, theaterName)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "theater type  deleted succesfully")
+}
+
+func (h *Handler) getTheaterTypeByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterType, err := h.svc.GetTheaterTypeByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theater-type details succesfully", theaterType)
+}
+
+func (h *Handler) getTheaterTypeByName(ctx *gin.Context) {
+	name := ctx.DefaultQuery("name", "")
+	theaterType, err := h.svc.GetTheaterTypeByName(ctx, name)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theater-type details succesfully", theaterType)
+}
+
+func (h *Handler) updateTheaterType(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theatertype := &TheaterType{}
+	if err := ctx.ShouldBindJSON(&theatertype); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err = h.svc.UpdateTheaterType(ctx, id, *theatertype)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "get theater-type details succesfully")
+}
+
+func (h *Handler) listTheaterTypes(ctx *gin.Context) {
+	theaterTypes, err := h.svc.ListMovies(ctx)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list theater-types succesfully", theaterTypes)
 }
