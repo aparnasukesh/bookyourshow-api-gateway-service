@@ -28,6 +28,14 @@ type Service interface {
 	ListScreenTypes(ctx context.Context) ([]ScreenType, error)
 	//Seat categories
 	ListSeatCategories(ctx context.Context) ([]SeatCategory, error)
+	//Theater screen
+	AddTheaterScreen(ctx context.Context, theaterScreen TheaterScreen) error
+	DeleteTheaterScreenByID(ctx context.Context, id int) error
+	DeleteTheaterScreenByNumber(ctx context.Context, theaterID int, screenNumber int) error
+	GetTheaterScreenByID(ctx context.Context, id int) (*TheaterScreen, error)
+	GetTheaterScreenByNumber(ctx context.Context, theaterID int, screenNumber int) (*TheaterScreen, error)
+	UpdateTheaterScreen(ctx context.Context, id int, theaterScreen TheaterScreen) error
+	ListTheaterScreens(ctx context.Context, theaterId int) ([]TheaterScreen, error)
 }
 
 type service struct {
@@ -269,4 +277,114 @@ func (s *service) ListSeatCategories(ctx context.Context) ([]SeatCategory, error
 		seatCategories = append(seatCategories, seatCategory)
 	}
 	return seatCategories, nil
+}
+
+// Theater screen
+// TheaterScreen
+func (s *service) AddTheaterScreen(ctx context.Context, theaterScreen TheaterScreen) error {
+	_, err := s.userAdmin.AddTheaterScreen(ctx, &user_admin.AddTheaterScreenRequest{
+		TheaterScreen: &user_admin.TheaterScreen{
+			ID:           uint32(theaterScreen.ID),
+			TheaterID:    int32(theaterScreen.TheaterID),
+			ScreenNumber: int32(theaterScreen.ScreenNumber),
+			SeatCapacity: int32(theaterScreen.SeatCapacity),
+			ScreenTypeID: int32(theaterScreen.ScreenTypeID),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) DeleteTheaterScreenByID(ctx context.Context, id int) error {
+	_, err := s.userAdmin.DeleteTheaterScreenByID(ctx, &user_admin.DeleteTheaterScreenRequest{
+		TheaterScreenId: int32(id),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) DeleteTheaterScreenByNumber(ctx context.Context, theaterID, screenNumber int) error {
+	_, err := s.userAdmin.DeleteTheaterScreenByNumber(ctx, &user_admin.DeleteTheaterScreenByNumberRequest{
+		TheaterID:    int32(theaterID),
+		ScreenNumber: int32(screenNumber),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) GetTheaterScreenByID(ctx context.Context, id int) (*TheaterScreen, error) {
+	response, err := s.userAdmin.GetTheaterScreenByID(ctx, &user_admin.GetTheaterScreenByIDRequest{
+		TheaterScreenId: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &TheaterScreen{
+		ID:           uint(response.TheaterScreen.ID),
+		TheaterID:    int(response.TheaterScreen.TheaterID),
+		ScreenNumber: int(response.TheaterScreen.ScreenNumber),
+		SeatCapacity: int(response.TheaterScreen.SeatCapacity),
+		ScreenTypeID: int(response.TheaterScreen.ScreenTypeID),
+	}, nil
+}
+
+func (s *service) GetTheaterScreenByNumber(ctx context.Context, theaterID, screenNumber int) (*TheaterScreen, error) {
+	response, err := s.userAdmin.GetTheaterScreenByNumber(ctx, &user_admin.GetTheaterScreenByNumberRequest{
+		TheaterID:    int32(theaterID),
+		ScreenNumber: int32(screenNumber),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &TheaterScreen{
+		ID:           uint(response.TheaterScreen.ID),
+		TheaterID:    int(response.TheaterScreen.TheaterID),
+		ScreenNumber: int(response.TheaterScreen.ScreenNumber),
+		SeatCapacity: int(response.TheaterScreen.SeatCapacity),
+		ScreenTypeID: int(response.TheaterScreen.ScreenTypeID),
+	}, nil
+}
+
+func (s *service) ListTheaterScreens(ctx context.Context, theaterID int) ([]TheaterScreen, error) {
+	response, err := s.userAdmin.ListTheaterScreens(ctx, &user_admin.ListTheaterScreensRequest{
+		TheaterID: int32(theaterID),
+	})
+	if err != nil {
+		return nil, err
+	}
+	theaterScreens := []TheaterScreen{}
+
+	for _, res := range response.TheaterScreens {
+		theaterScreen := TheaterScreen{
+			ID:           uint(res.ID),
+			TheaterID:    int(res.TheaterID),
+			ScreenNumber: int(res.ScreenNumber),
+			SeatCapacity: int(res.SeatCapacity),
+			ScreenTypeID: int(res.ScreenTypeID),
+		}
+		theaterScreens = append(theaterScreens, theaterScreen)
+	}
+	return theaterScreens, nil
+}
+
+func (s *service) UpdateTheaterScreen(ctx context.Context, id int, theaterScreen TheaterScreen) error {
+	_, err := s.userAdmin.UpdateTheaterScreen(ctx, &user_admin.UpdateTheaterScreenRequest{
+		TheaterScreen: &user_admin.TheaterScreen{
+			ID:           uint32(id),
+			TheaterID:    int32(theaterScreen.TheaterID),
+			ScreenNumber: int32(theaterScreen.ScreenNumber),
+			SeatCapacity: int32(theaterScreen.SeatCapacity),
+			ScreenTypeID: int32(theaterScreen.ScreenTypeID),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

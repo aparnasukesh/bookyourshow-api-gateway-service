@@ -41,6 +41,14 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.GET("/screen/types", h.listScreenTypes)
 	//Seat categories
 	auth.GET("/seat/categories", h.listSeatCategories)
+	//Theater screen
+	auth.POST("/theater/screen", h.addTheaterScreen)
+	auth.DELETE("/theater/screen/:id", h.deleteTheaterScreenByID)
+	auth.DELETE("/theater/screen", h.deleteTheaterScreenByNumber)
+	auth.GET("/theater/screen/:id", h.getTheaterScreenByID)
+	auth.GET("/theater/screen", h.getTheaterScreenByNumber)
+	auth.PUT("/theater/screen/:id", h.updateTheaterScreen)
+	auth.GET("/theater/screens", h.listTheaterScreens)
 
 }
 func (h *Handler) register(ctx *gin.Context) {
@@ -226,8 +234,7 @@ func (h *Handler) listScreenTypes(ctx *gin.Context) {
 	h.responseWithData(ctx, http.StatusOK, "list screen-types successfully", screenTypes)
 }
 
-//Seat categories
-
+// Seat categories
 func (h *Handler) listSeatCategories(ctx *gin.Context) {
 	seatCategories, err := h.svc.ListSeatCategories(ctx)
 	if err != nil {
@@ -236,4 +243,142 @@ func (h *Handler) listSeatCategories(ctx *gin.Context) {
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list seat-categories successfully", seatCategories)
+}
+
+// Theater screen
+func (h *Handler) addTheaterScreen(ctx *gin.Context) {
+	theaterScreen := &TheaterScreen{}
+	if err := ctx.ShouldBindJSON(&theaterScreen); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err := h.svc.AddTheaterScreen(ctx, *theaterScreen)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "theater screen added successfully")
+}
+
+func (h *Handler) deleteTheaterScreenByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteTheaterScreenByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "theater screen deleted successfully")
+}
+
+func (h *Handler) deleteTheaterScreenByNumber(ctx *gin.Context) {
+	theaterIDstr := ctx.DefaultQuery("theaterID", "")
+	screenNumberstr := ctx.DefaultQuery("screenNumber", "")
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	screenNumber, err := strconv.Atoi(screenNumberstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteTheaterScreenByNumber(ctx, theaterID, screenNumber)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "theater screen deleted successfully")
+}
+
+func (h *Handler) getTheaterScreenByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterScreen, err := h.svc.GetTheaterScreenByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theater screen details successfully", theaterScreen)
+}
+
+func (h *Handler) getTheaterScreenByNumber(ctx *gin.Context) {
+	theaterIDstr := ctx.DefaultQuery("theaterID", "")
+	screenNumberstr := ctx.DefaultQuery("screenNumber", "")
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	screenNumber, err := strconv.Atoi(screenNumberstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterScreen, err := h.svc.GetTheaterScreenByNumber(ctx, theaterID, screenNumber)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theater screen details successfully", theaterScreen)
+}
+
+func (h *Handler) updateTheaterScreen(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterScreen := &TheaterScreen{}
+	if err := ctx.ShouldBindJSON(&theaterScreen); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err = h.svc.UpdateTheaterScreen(ctx, id, *theaterScreen)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "theater screen updated successfully")
+}
+
+func (h *Handler) listTheaterScreens(ctx *gin.Context) {
+	theaterScreen := &TheaterScreen{}
+	if err := ctx.ShouldBindJSON(&theaterScreen); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	theaterScreens, err := h.svc.ListTheaterScreens(ctx, theaterScreen.TheaterID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list theater screens successfully", theaterScreens)
 }

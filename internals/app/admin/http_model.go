@@ -58,3 +58,11 @@ type Theater struct {
 	NumberOfScreens int    `json:"number_of_screens"`
 	TheaterTypeID   int    `json:"theater_type_id"`
 }
+
+type TheaterScreen struct {
+	ID           uint `json:"id"`
+	TheaterID    int  `json:"theater_id"`
+	ScreenNumber int  `json:"screen_number"`
+	SeatCapacity int  `json:"seat_capacity"`
+	ScreenTypeID int  `json:"screen_type_id"`
+}
