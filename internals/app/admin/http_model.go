@@ -21,3 +21,40 @@ type AdminProfileDetails struct {
 	Dateofbirth string `json:"dateofbirth"`
 	Gender      string `json:"gender"`
 }
+
+// Movies
+type Movie struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Duration    int     `json:"duration"`
+	Genre       string  `json:"genre"`
+	ReleaseDate string  `json:"release_date"`
+	Rating      float64 `json:"rating"`
+	Language    string  `json:"language"`
+}
+
+// Theater type
+type TheaterType struct {
+	ID              int    `json:"id"`
+	TheaterTypeName string `json:"theater_type_name"`
+}
+
+type ScreenType struct {
+	ID             int    `json:"id"`
+	ScreenTypeName string `json:"screen_type_name"`
+}
+
+type SeatCategory struct {
+	ID                int     `json:"id"`
+	SeatCategoryName  string  `json:"seat_category_name"`
+	SeatCategoryPrice float64 `json:"seat_category_price"`
+}
+
+type Theater struct {
+	ID              int    `json:"id"`
+	Name            string `json:"name"`
+	Location        string `json:"location"`
+	OwnerID         uint   `json:"owner_id"`
+	NumberOfScreens int    `json:"number_of_screens"`
+	TheaterTypeID   int    `json:"theater_type_id"`
+}

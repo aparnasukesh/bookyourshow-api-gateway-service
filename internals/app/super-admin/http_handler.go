@@ -286,7 +286,7 @@ func (h *Handler) updateTheaterType(ctx *gin.Context) {
 }
 
 func (h *Handler) listTheaterTypes(ctx *gin.Context) {
-	theaterTypes, err := h.svc.ListMovies(ctx)
+	theaterTypes, err := h.svc.ListTheaterTypes(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
