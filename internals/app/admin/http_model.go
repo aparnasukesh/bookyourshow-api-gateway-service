@@ -1,5 +1,7 @@
 package admin
 
+import "time"
+
 type Admin struct {
 	Username    string `json:"username" validate:"required,min=8,max=24"`
 	Password    string `json:"password" validate:"required,min=6,max=12"`
@@ -65,4 +67,12 @@ type TheaterScreen struct {
 	ScreenNumber int  `json:"screen_number"`
 	SeatCapacity int  `json:"seat_capacity"`
 	ScreenTypeID int  `json:"screen_type_id"`
+}
+
+type Showtime struct {
+	ID       uint      `json:"id"`
+	MovieID  int       `json:"movie_id"`
+	ScreenID int       `json:"screen_id"`
+	ShowDate time.Time `json:"show_date"`
+	ShowTime time.Time `json:"show_time"`
 }

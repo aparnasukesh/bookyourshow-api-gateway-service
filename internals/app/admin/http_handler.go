@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/aparnasukesh/api-gateway/pkg/common"
 	"github.com/gin-gonic/gin"
@@ -49,7 +50,14 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.GET("/theater/screen", h.getTheaterScreenByNumber)
 	auth.PUT("/theater/screen/:id", h.updateTheaterScreen)
 	auth.GET("/theater/screens", h.listTheaterScreens)
-
+	//Show times
+	auth.POST("/showtime", h.addShowtime)
+	auth.DELETE("/showtime/:id", h.deleteShowtimeByID)
+	auth.DELETE("/showtime", h.deleteShowtimeByDetails)
+	auth.GET("/showtime/:id", h.getShowtimeByID)
+	auth.GET("/showtime", h.getShowtimeByDetails)
+	auth.PUT("/showtime/:id", h.updateShowtime)
+	auth.GET("/showtimes", h.listShowtimes)
 }
 func (h *Handler) register(ctx *gin.Context) {
 	userData := Admin{}
@@ -381,4 +389,132 @@ func (h *Handler) listTheaterScreens(ctx *gin.Context) {
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list theater screens successfully", theaterScreens)
+}
+
+// Show times
+func (h *Handler) addShowtime(ctx *gin.Context) {
+	showtime := &Showtime{}
+	if err := ctx.ShouldBindJSON(&showtime); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	// If needed, set userId or any additional fields here
+	err := h.svc.AddShowtime(ctx, *showtime)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "showtime added successfully")
+}
+
+func (h *Handler) deleteShowtimeByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteShowtimeByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "showtime deleted successfully")
+}
+
+func (h *Handler) deleteShowtimeByDetails(ctx *gin.Context) {
+	movieIDStr := ctx.DefaultQuery("movie_id", "")
+	screenIDStr := ctx.DefaultQuery("screen_id", "")
+	showDateStr := ctx.DefaultQuery("show_date", "")
+	showTimeStr := ctx.DefaultQuery("show_time", "")
+
+	movieID, _ := strconv.Atoi(movieIDStr)
+	screenID, _ := strconv.Atoi(screenIDStr)
+	showDate, _ := time.Parse(time.RFC3339, showDateStr)
+	showTime, _ := time.Parse(time.RFC3339, showTimeStr)
+
+	err := h.svc.DeleteShowtimeByDetails(ctx, movieID, screenID, showDate, showTime)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "showtime deleted successfully")
+}
+
+func (h *Handler) getShowtimeByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	showtime, err := h.svc.GetShowtimeByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get showtime details successfully", showtime)
+}
+
+func (h *Handler) getShowtimeByDetails(ctx *gin.Context) {
+	movieIDStr := ctx.DefaultQuery("movie_id", "")
+	screenIDStr := ctx.DefaultQuery("screen_id", "")
+	showDateStr := ctx.DefaultQuery("show_date", "")
+	showTimeStr := ctx.DefaultQuery("show_time", "")
+
+	movieID, _ := strconv.Atoi(movieIDStr)
+	screenID, _ := strconv.Atoi(screenIDStr)
+	showDate, _ := time.Parse(time.RFC3339, showDateStr)
+	showTime, _ := time.Parse(time.RFC3339, showTimeStr)
+
+	showtime, err := h.svc.GetShowtimeByDetails(ctx, movieID, screenID, showDate, showTime)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get showtime details successfully", showtime)
+}
+
+func (h *Handler) updateShowtime(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	showtime := &Showtime{}
+	if err := ctx.ShouldBindJSON(&showtime); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err = h.svc.UpdateShowtime(ctx, id, *showtime)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "showtime updated successfully")
+}
+
+func (h *Handler) listShowtimes(ctx *gin.Context) {
+	movieIDStr := ctx.DefaultQuery("movie_id", "")
+	movieID, _ := strconv.Atoi(movieIDStr)
+
+	showtimes, err := h.svc.ListShowtimes(ctx, movieID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list showtimes successfully", showtimes)
 }

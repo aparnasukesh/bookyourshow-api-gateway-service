@@ -118,6 +118,7 @@ func (s *service) UpdateMovie(ctx context.Context, movie Movie, movieId int) err
 		Genre:       movie.Genre,
 		ReleaseDate: movie.ReleaseDate,
 		Rating:      float32(movie.Rating),
+		Language:    movie.Language,
 	})
 	if err != nil {
 		return err
@@ -152,6 +153,7 @@ func (s *service) GetMovieDetails(ctx context.Context, movieId int) (*Movie, err
 		Genre:       response.Movie.Genre,
 		ReleaseDate: response.Movie.ReleaseDate,
 		Rating:      float64(response.Movie.Rating),
+		Language:    response.Movie.Language,
 	}
 
 	return movie, nil
@@ -171,6 +173,7 @@ func (s *service) ListMovies(ctx context.Context) ([]Movie, error) {
 			Genre:       m.Genre,
 			ReleaseDate: m.ReleaseDate,
 			Rating:      float64(m.Rating),
+			Language:    m.Language,
 		}
 		movies = append(movies, movie)
 	}

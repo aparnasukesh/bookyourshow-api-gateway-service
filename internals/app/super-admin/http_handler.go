@@ -166,7 +166,7 @@ func (h *Handler) getMovieDetails(ctx *gin.Context) {
 	movie, err := h.svc.GetMovieDetails(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "get movie details succesfully", movie)
@@ -183,10 +183,14 @@ func (h *Handler) deleteMovie(ctx *gin.Context) {
 	err = h.svc.DeleteMovie(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
-	h.response(ctx, http.StatusOK, "movie deleted succesfully")
+	h.response(ctx, http.StatusOK, "Movie deleted successfully")
 }
 
 // theater-type
@@ -279,10 +283,16 @@ func (h *Handler) updateTheaterType(ctx *gin.Context) {
 	err = h.svc.UpdateTheaterType(ctx, id, *theatertype)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
-	h.response(ctx, http.StatusOK, "get theater-type details succesfully")
+
+	h.response(ctx, http.StatusOK, "Theater type updated successfully")
+
 }
 
 func (h *Handler) listTheaterTypes(ctx *gin.Context) {
