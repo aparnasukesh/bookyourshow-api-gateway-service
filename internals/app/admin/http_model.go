@@ -47,15 +47,17 @@ type ScreenType struct {
 }
 
 type SeatCategory struct {
-	ID                int     `json:"id"`
-	SeatCategoryName  string  `json:"seat_category_name"`
-	SeatCategoryPrice float64 `json:"seat_category_price"`
+	ID               int    `json:"id"`
+	SeatCategoryName string `json:"seat_category_name"`
 }
 
 type Theater struct {
-	ID              int    `json:"id"`
+	ID              uint   `json:"id"`
 	Name            string `json:"name"`
-	Location        string `json:"location"`
+	Place           string `json:"place"`
+	City            string `json:"city"`
+	District        string `json:"district"`
+	State           string `json:"state"`
 	OwnerID         uint   `json:"owner_id"`
 	NumberOfScreens int    `json:"number_of_screens"`
 	TheaterTypeID   int    `json:"theater_type_id"`

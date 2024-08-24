@@ -221,10 +221,14 @@ func (h *Handler) deleteTheaterTypeById(ctx *gin.Context) {
 	err = h.svc.DeleteTheaterTypeById(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
-	h.response(ctx, http.StatusOK, "theater type  deleted succesfully")
+	h.response(ctx, http.StatusOK, "theater type deleted successfully")
 }
 
 func (h *Handler) deleteTheaterTypeByName(ctx *gin.Context) {
@@ -232,7 +236,11 @@ func (h *Handler) deleteTheaterTypeByName(ctx *gin.Context) {
 	err := h.svc.DeleteTheaterTypeByName(ctx, theaterName)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "theater type  deleted succesfully")
@@ -333,7 +341,11 @@ func (h *Handler) deleteScreenTypeById(ctx *gin.Context) {
 	err = h.svc.DeleteScreenTypeById(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "screen type deleted successfully")
@@ -344,7 +356,11 @@ func (h *Handler) deleteScreenTypeByName(ctx *gin.Context) {
 	err := h.svc.DeleteScreenTypeByName(ctx, screenName)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "screen type deleted successfully")
@@ -395,10 +411,14 @@ func (h *Handler) updateScreenType(ctx *gin.Context) {
 	err = h.svc.UpdateScreenType(ctx, id, *screenType)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
-	h.response(ctx, http.StatusOK, "get screen-type details successfully")
+	h.response(ctx, http.StatusOK, "update screen type successfully")
 }
 
 func (h *Handler) listScreenTypes(ctx *gin.Context) {
@@ -439,7 +459,11 @@ func (h *Handler) deleteSeatCategoryById(ctx *gin.Context) {
 	err = h.svc.DeleteSeatCategoryByID(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "seat category deleted successfully")
@@ -450,7 +474,11 @@ func (h *Handler) deleteSeatCategoryByName(ctx *gin.Context) {
 	err := h.svc.DeleteSeatCategoryByName(ctx, seatCategoryName)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "seat category deleted successfully")
@@ -501,7 +529,11 @@ func (h *Handler) updateSeatCategory(ctx *gin.Context) {
 	err = h.svc.UpdateSeatCategory(ctx, id, *seatCategory)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "seat category updated successfully")

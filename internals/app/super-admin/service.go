@@ -355,8 +355,7 @@ func (s *service) ListScreenTypes(ctx context.Context) ([]ScreenType, error) {
 func (s *service) AddSeatCategory(ctx context.Context, seatCategory SeatCategory) error {
 	_, err := s.userAdmin.AddSeatCategory(ctx, &user_admin.AddSeatCategoryRequest{
 		SeatCategory: &user_admin.SeatCategory{
-			SeatCategoryName:  seatCategory.SeatCategoryName,
-			SeatCategoryPrice: seatCategory.SeatCategoryPrice,
+			SeatCategoryName: seatCategory.SeatCategoryName,
 		},
 	})
 	if err != nil {
@@ -393,9 +392,8 @@ func (s *service) GetSeatCategoryByID(ctx context.Context, id int) (*SeatCategor
 		return nil, err
 	}
 	return &SeatCategory{
-		ID:                int(response.SeatCategory.Id),
-		SeatCategoryName:  response.SeatCategory.SeatCategoryName,
-		SeatCategoryPrice: response.SeatCategory.SeatCategoryPrice,
+		ID:               int(response.SeatCategory.Id),
+		SeatCategoryName: response.SeatCategory.SeatCategoryName,
 	}, nil
 }
 
@@ -407,9 +405,8 @@ func (s *service) GetSeatCategoryByName(ctx context.Context, name string) (*Seat
 		return nil, err
 	}
 	return &SeatCategory{
-		ID:                int(response.SeatCategory.Id),
-		SeatCategoryName:  response.SeatCategory.SeatCategoryName,
-		SeatCategoryPrice: response.SeatCategory.SeatCategoryPrice,
+		ID:               int(response.SeatCategory.Id),
+		SeatCategoryName: response.SeatCategory.SeatCategoryName,
 	}, nil
 }
 
@@ -422,9 +419,8 @@ func (s *service) ListSeatCategories(ctx context.Context) ([]SeatCategory, error
 
 	for _, res := range response.SeatCategories {
 		seatCategory := SeatCategory{
-			ID:                int(res.Id),
-			SeatCategoryName:  res.SeatCategoryName,
-			SeatCategoryPrice: res.SeatCategoryPrice,
+			ID:               int(res.Id),
+			SeatCategoryName: res.SeatCategoryName,
 		}
 		seatCategories = append(seatCategories, seatCategory)
 	}
@@ -435,9 +431,8 @@ func (s *service) UpdateSeatCategory(ctx context.Context, id int, seatCategory S
 	_, err := s.userAdmin.UpdateSeatCategory(ctx, &user_admin.UpdateSeatCategoryRequest{
 		Id: int32(id),
 		SeatCategory: &user_admin.SeatCategory{
-			Id:                int32(id),
-			SeatCategoryName:  seatCategory.SeatCategoryName,
-			SeatCategoryPrice: seatCategory.SeatCategoryPrice,
+			Id:               int32(id),
+			SeatCategoryName: seatCategory.SeatCategoryName,
 		},
 	})
 	if err != nil {

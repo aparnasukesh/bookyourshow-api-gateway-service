@@ -12,7 +12,6 @@ func BuildGetUserProfile(res *user_admin.GetProfileResponse) (*UserProfileDetail
 		FirstName:   res.ProfileDetails.FirstName,
 		LastName:    res.ProfileDetails.LastName,
 		Phone:       res.ProfileDetails.Phone,
-		Email:       res.ProfileDetails.Email,
 		Dateofbirth: res.ProfileDetails.DateOfBirth,
 		Gender:      res.ProfileDetails.Gender,
 	}, nil
