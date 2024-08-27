@@ -307,7 +307,7 @@ func (h *Handler) listTheaterTypes(ctx *gin.Context) {
 	theaterTypes, err := h.svc.ListTheaterTypes(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list theater-types succesfully", theaterTypes)
@@ -425,7 +425,7 @@ func (h *Handler) listScreenTypes(ctx *gin.Context) {
 	screenTypes, err := h.svc.ListScreenTypes(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list screen-types successfully", screenTypes)
@@ -543,7 +543,7 @@ func (h *Handler) listSeatCategories(ctx *gin.Context) {
 	seatCategories, err := h.svc.ListSeatCategories(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list seat-categories successfully", seatCategories)

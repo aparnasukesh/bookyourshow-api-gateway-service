@@ -245,6 +245,7 @@ func (s *service) ListMovies(ctx context.Context) ([]Movie, error) {
 			Genre:       m.Genre,
 			ReleaseDate: m.ReleaseDate,
 			Rating:      float64(m.Rating),
+			Language:    m.Language,
 		}
 		movies = append(movies, movie)
 	}

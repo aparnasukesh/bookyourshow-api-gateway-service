@@ -130,7 +130,11 @@ func (h *Handler) deleteTheaterByID(ctx *gin.Context) {
 	err = h.svc.DeleteTheaterByID(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "theater deleted successfully")
@@ -141,7 +145,11 @@ func (h *Handler) deleteTheaterByName(ctx *gin.Context) {
 	err := h.svc.DeleteTheaterByName(ctx, theaterName)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "theater deleted successfully")
@@ -192,7 +200,11 @@ func (h *Handler) updateTheater(ctx *gin.Context) {
 	err = h.svc.UpdateTheater(ctx, id, *theater)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		if formattedError == "record not found" {
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		} else {
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		}
 		return
 	}
 	h.response(ctx, http.StatusOK, "theater updated successfully")
@@ -213,7 +225,7 @@ func (h *Handler) listMovies(ctx *gin.Context) {
 	movies, err := h.svc.ListMovies(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list movies succesfully", movies)
@@ -221,10 +233,10 @@ func (h *Handler) listMovies(ctx *gin.Context) {
 
 // Theater-types
 func (h *Handler) listTheaterTypes(ctx *gin.Context) {
-	theaterTypes, err := h.svc.ListTheaters(ctx)
+	theaterTypes, err := h.svc.ListTheaterTypes(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list theater-types succesfully", theaterTypes)
@@ -236,7 +248,7 @@ func (h *Handler) listScreenTypes(ctx *gin.Context) {
 	screenTypes, err := h.svc.ListScreenTypes(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list screen-types successfully", screenTypes)
@@ -247,7 +259,7 @@ func (h *Handler) listSeatCategories(ctx *gin.Context) {
 	seatCategories, err := h.svc.ListSeatCategories(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list seat-categories successfully", seatCategories)
@@ -281,31 +293,23 @@ func (h *Handler) deleteTheaterScreenByID(ctx *gin.Context) {
 	err = h.svc.DeleteTheaterScreenByID(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.response(ctx, http.StatusOK, "theater screen deleted successfully")
 }
 
 func (h *Handler) deleteTheaterScreenByNumber(ctx *gin.Context) {
-	theaterIDstr := ctx.DefaultQuery("theaterID", "")
-	screenNumberstr := ctx.DefaultQuery("screenNumber", "")
-	theaterID, err := strconv.Atoi(theaterIDstr)
-	if err != nil {
+	theaterscreen := &TheaterScreen{}
+	if err := ctx.ShouldBindJSON(&theaterscreen); err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	screenNumber, err := strconv.Atoi(screenNumberstr)
+	err := h.svc.DeleteTheaterScreenByNumber(ctx, theaterscreen.TheaterID, theaterscreen.ScreenNumber)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
-		return
-	}
-	err = h.svc.DeleteTheaterScreenByNumber(ctx, theaterID, screenNumber)
-	if err != nil {
-		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.response(ctx, http.StatusOK, "theater screen deleted successfully")
@@ -369,7 +373,7 @@ func (h *Handler) updateTheaterScreen(ctx *gin.Context) {
 	err = h.svc.UpdateTheaterScreen(ctx, id, *theaterScreen)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.response(ctx, http.StatusOK, "theater screen updated successfully")
@@ -385,7 +389,7 @@ func (h *Handler) listTheaterScreens(ctx *gin.Context) {
 	theaterScreens, err := h.svc.ListTheaterScreens(ctx, theaterScreen.TheaterID)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list theater screens successfully", theaterScreens)
@@ -513,7 +517,7 @@ func (h *Handler) listShowtimes(ctx *gin.Context) {
 	showtimes, err := h.svc.ListShowtimes(ctx, movieID)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list showtimes successfully", showtimes)
