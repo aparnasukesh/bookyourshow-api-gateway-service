@@ -403,7 +403,6 @@ func (h *Handler) addShowtime(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	// If needed, set userId or any additional fields here
 	err := h.svc.AddShowtime(ctx, *showtime)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
@@ -424,7 +423,7 @@ func (h *Handler) deleteShowtimeByID(ctx *gin.Context) {
 	err = h.svc.DeleteShowtimeByID(ctx, id)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.response(ctx, http.StatusOK, "showtime deleted successfully")
@@ -444,7 +443,7 @@ func (h *Handler) deleteShowtimeByDetails(ctx *gin.Context) {
 	err := h.svc.DeleteShowtimeByDetails(ctx, movieID, screenID, showDate, showTime)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.response(ctx, http.StatusOK, "showtime deleted successfully")
@@ -504,7 +503,7 @@ func (h *Handler) updateShowtime(ctx *gin.Context) {
 	err = h.svc.UpdateShowtime(ctx, id, *showtime)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNotModified, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.response(ctx, http.StatusOK, "showtime updated successfully")
