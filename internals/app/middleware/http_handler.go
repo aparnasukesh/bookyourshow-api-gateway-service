@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -28,7 +29,8 @@ func (h *Handler) UserAuthMiddleware() gin.HandlerFunc {
 
 		err := h.svc.UserAuthentication(ctx, authorization)
 		if err != nil {
-			h.responseWithError(ctx, http.StatusUnauthorized, err)
+			formattedError := ExtractErrorMessage(err)
+			h.responseWithError(ctx, http.StatusUnauthorized, errors.New(formattedError))
 			ctx.Abort()
 			return
 		}
@@ -40,7 +42,8 @@ func (h *Handler) AdminAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorization := ctx.Request.Header.Get("Authorization")
 		if err := h.svc.AdminAuthentication(ctx, authorization); err != nil {
-			h.responseWithError(ctx, http.StatusUnauthorized, err)
+			formattedError := ExtractErrorMessage(err)
+			h.responseWithError(ctx, http.StatusUnauthorized, errors.New(formattedError))
 			ctx.Abort()
 			return
 		}
@@ -53,7 +56,8 @@ func (h *Handler) SuperAdminAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorization := ctx.Request.Header.Get("Authorization")
 		if err := h.svc.SuperAdminAuthentication(ctx, authorization); err != nil {
-			h.responseWithError(ctx, http.StatusUnauthorized, err)
+			formattedError := ExtractErrorMessage(err)
+			h.responseWithError(ctx, http.StatusUnauthorized, errors.New(formattedError))
 			ctx.Abort()
 			return
 		}
