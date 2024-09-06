@@ -27,6 +27,9 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.POST("/login", h.logIn)
 
 	auth := r.Use(h.authHandler.AdminAuthMiddleware())
+
+	auth.GET("/profile/:id", h.getAdminProfile)
+	auth.PUT("profile/:id", h.updateAdminProfile)
 	// Theater
 	auth.POST("/theater", h.addTheater)
 	auth.DELETE("/theater/:id", h.deleteTheaterByID)
@@ -94,6 +97,48 @@ func (h *Handler) logIn(ctx *gin.Context) {
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "login succesfull", token)
+}
+
+func (h *Handler) getAdminProfile(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	admin, err := h.svc.GetAdminProfile(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get admin profile successfull", admin)
+
+}
+
+func (h *Handler) updateAdminProfile(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	admin := &Admin{}
+	if err := ctx.ShouldBindJSON(&admin); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err = h.svc.UpdateAdminProfile(ctx, id, *admin)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "update admin profile successfull")
+
 }
 
 // Theater

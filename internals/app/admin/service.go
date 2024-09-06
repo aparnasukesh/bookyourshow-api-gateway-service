@@ -14,6 +14,8 @@ type Service interface {
 	Register(ctx context.Context, signUpData *Admin) error
 	Login(ctx context.Context, loginData *Admin) (string, error)
 	GetUserIDFromToken(ctx context.Context, authorization string) (int, error)
+	GetAdminProfile(ctx context.Context, id int) (*Admin, error)
+	UpdateAdminProfile(ctx context.Context, id int, admin Admin) error
 	//Theater
 	AddTheater(ctx context.Context, theater Theater) error
 	DeleteTheaterByID(ctx context.Context, id int) error
@@ -100,6 +102,41 @@ func (s *service) Login(ctx context.Context, loginData *Admin) (string, error) {
 		return "", err
 	}
 	return res.Token, nil
+}
+
+func (s *service) GetAdminProfile(ctx context.Context, id int) (*Admin, error) {
+	admin, err := s.userAdmin.GetAdminProfile(ctx, &user_admin.GetProfileRequest{
+		UserId: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &Admin{
+		ID:          int(admin.ProfileDetails.Id),
+		Username:    admin.ProfileDetails.Username,
+		PhoneNumber: admin.ProfileDetails.Phone,
+		Email:       admin.ProfileDetails.Email,
+		FirstName:   admin.ProfileDetails.FirstName,
+		LastName:    admin.ProfileDetails.LastName,
+		DateOfBirth: admin.ProfileDetails.DateOfBirth,
+		Gender:      admin.ProfileDetails.Gender,
+		IsVerified:  admin.ProfileDetails.IsVerified,
+	}, nil
+}
+func (s *service) UpdateAdminProfile(ctx context.Context, id int, admin Admin) error {
+	_, err := s.userAdmin.UpdateAdminProfile(ctx, &user_admin.UpdateAdminProfileRequest{
+		UserId:      int32(admin.ID),
+		Username:    admin.Username,
+		Phone:       admin.PhoneNumber,
+		FirstName:   admin.FirstName,
+		LastName:    admin.LastName,
+		Gender:      admin.Gender,
+		DateOfBirth: admin.DateOfBirth,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Theater

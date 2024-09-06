@@ -33,8 +33,8 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 
 	auth.GET("/users", h.listAllUser)
 	auth.GET("/user/:id", h.getUserByID)
-	auth.PATCH("/user/:id", h.blockUser)
-	auth.PATCH("/user/:id", h.unBlockUser)
+	auth.PATCH("/user/block/:id", h.blockUser)
+	auth.PATCH("/user/unblock/:id", h.unBlockUser)
 
 	auth.POST("/movie/register", h.registerMovie)
 	auth.PUT("/movie/:id", h.updateMovie)

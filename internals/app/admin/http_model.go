@@ -3,6 +3,7 @@ package admin
 import "time"
 
 type Admin struct {
+	ID          int    `json:"id"`
 	Username    string `json:"username" validate:"required,min=8,max=24"`
 	Password    string `json:"password" validate:"required,min=6,max=12"`
 	PhoneNumber string `json:"phone" validate:"required,len=10"`
@@ -11,7 +12,7 @@ type Admin struct {
 	LastName    string `gorm:"not null" json:"lastname" validate:"required,min=4,max=10"`
 	DateOfBirth string `json:"date_of_birth"`
 	Gender      string `json:"gender"`
-	Otp         string `json:"otp"`
+	IsVerified  bool   `json:"is_verified"`
 }
 
 type AdminProfileDetails struct {
