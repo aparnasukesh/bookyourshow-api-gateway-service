@@ -25,6 +25,7 @@ func NewHttpHandler(svc Service, authHandler common.Middleware) *Handler {
 func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.POST("/register", h.register)
 	r.POST("/login", h.logIn)
+
 	auth := r.Use(h.authHandler.AdminAuthMiddleware())
 	// Theater
 	auth.POST("/theater", h.addTheater)

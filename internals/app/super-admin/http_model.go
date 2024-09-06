@@ -2,7 +2,9 @@ package superadmin
 
 import "time"
 
+// Admin
 type Admin struct {
+	ID          int       `json:"id"`
 	Username    string    `json:"username" validate:"required,min=8,max=24"`
 	Password    string    `json:"password" validate:"required,min=6,max=12"`
 	PhoneNumber string    `json:"phone" validate:"required,len=10"`
@@ -11,7 +13,17 @@ type Admin struct {
 	LastName    string    `gorm:"not null" json:"lastname" validate:"required,min=4,max=10"`
 	DateOfBirth time.Time `json:"date_of_birth"`
 	Gender      string    `json:"gender"`
-	Otp         string    `json:"otp"`
+}
+
+type AdminProfile struct {
+	ID          int       `json:"id"`
+	Username    string    `json:"username" validate:"required,min=8,max=24"`
+	PhoneNumber string    `json:"phone" validate:"required,len=10"`
+	Email       string    `json:"email" validate:"email,required"`
+	FirstName   string    `gorm:"not null" json:"firstname" validate:"required,min=4,max=10"`
+	LastName    string    `gorm:"not null" json:"lastname" validate:"required,min=4,max=10"`
+	DateOfBirth time.Time `json:"date_of_birth"`
+	Gender      string    `json:"gender"`
 }
 
 type AdminRequestResponse struct {
@@ -21,6 +33,19 @@ type AdminRequestResponse struct {
 type AdminApproval struct {
 	Email      string `json:"email" validate:"email,required"`
 	IsVerified bool   `json:"is_verified"`
+}
+
+// User
+type User struct {
+	ID          int    `json:"id"`
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone"`
+	FirstName   string `json:"firstname"`
+	LastName    string `json:"lastname"`
+	DateOfBirth string `json:"date_of_birth"`
+	Gender      string `json:"gender"`
+	IsVerified  bool   `json:"is_verified"`
 }
 
 // Movies

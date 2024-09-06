@@ -17,6 +17,13 @@ type Service interface {
 	Login(ctx context.Context, loginData *Admin) (string, error)
 	ListAdminRequests(ctx context.Context) ([]AdminRequestResponse, error)
 	AdminApproval(ctx context.Context, email string, isVerified bool) error
+	ListAllAdmins(ctx context.Context) ([]Admin, error)
+	GetAdminById(ctx context.Context, id int) (*Admin, error)
+	// User
+	ListAllUser(ctx context.Context) ([]User, error)
+	GetUserByID(ctx context.Context, id int) (*User, error)
+	BlockUser(ctx context.Context, id int) error
+	UnBlockUser(ctx context.Context, id int) error
 	// Movies
 	RegisterMovie(ctx context.Context, movie Movie) (int, error)
 	UpdateMovie(ctx context.Context, movie Movie, movieId int) error
@@ -82,7 +89,6 @@ func (s *service) ListAdminRequests(ctx context.Context) ([]AdminRequestResponse
 }
 
 func (s *service) AdminApproval(ctx context.Context, email string, isVerified bool) error {
-
 	_, err := s.userAdmin.AdminApproval(ctx, &user_admin.AdminApprovalRequest{
 		Email:      email,
 		IsVerified: isVerified,
@@ -93,6 +99,49 @@ func (s *service) AdminApproval(ctx context.Context, email string, isVerified bo
 	return nil
 }
 
+func (s *service) ListAllAdmins(ctx context.Context) ([]Admin, error) {
+	response, err := s.userAdmin.ListAllAdmin(ctx, &user_admin.ListAllAdminRequest{})
+	if err != nil {
+		return nil, err
+	}
+	admins := []Admin{}
+
+	for _, res := range response.Admin {
+		admin := Admin{
+			ID:          int(res.Id),
+			Username:    res.Username,
+			PhoneNumber: res.Phone,
+			Email:       res.Email,
+			FirstName:   res.FirstName,
+			LastName:    res.LastName,
+			Gender:      res.Gender,
+		}
+		admins = append(admins, admin)
+	}
+	return admins, nil
+
+}
+
+func (s *service) GetAdminById(ctx context.Context, id int) (*Admin, error) {
+	response, err := s.userAdmin.GetAdminByID(ctx, &user_admin.GetAdminByIdRequest{
+		AdminId: int32(id),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return &Admin{
+		ID:          id,
+		Username:    response.Admin.Username,
+		PhoneNumber: response.Admin.Phone,
+		Email:       response.Admin.Email,
+		FirstName:   response.Admin.FirstName,
+		LastName:    response.Admin.LastName,
+		Gender:      response.Admin.Gender,
+	}, nil
+}
+
+// Movies
 func (s *service) RegisterMovie(ctx context.Context, movie Movie) (int, error) {
 	response, err := s.userAdmin.RegisterMovie(ctx, &user_admin.RegisterMovieRequest{
 		Title:       movie.Title,
@@ -434,6 +483,71 @@ func (s *service) UpdateSeatCategory(ctx context.Context, id int, seatCategory S
 			Id:               int32(id),
 			SeatCategoryName: seatCategory.SeatCategoryName,
 		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// User
+func (s *service) BlockUser(ctx context.Context, id int) error {
+	_, err := s.userAdmin.BlockUser(ctx, &user_admin.BlockUserRequest{
+		UserId: int32(id),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) GetUserByID(ctx context.Context, id int) (*User, error) {
+	response, err := s.userAdmin.GetUserByID(ctx, &user_admin.GetUserByIdRequest{
+		UserId: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &User{
+		ID:          id,
+		Username:    response.User.Username,
+		Email:       response.User.Email,
+		PhoneNumber: response.User.Phone,
+		FirstName:   response.User.FirstName,
+		LastName:    response.User.LastName,
+		DateOfBirth: response.User.DateOfBirth,
+		Gender:      response.User.Gender,
+		IsVerified:  response.User.IsVerified,
+	}, nil
+}
+
+func (s *service) ListAllUser(ctx context.Context) ([]User, error) {
+	response, err := s.userAdmin.ListAllUser(ctx, &user_admin.ListAllUserRequest{})
+	if err != nil {
+		return nil, err
+	}
+	users := []User{}
+
+	for _, res := range response.User {
+		user := User{
+			ID:          int(res.Id),
+			Username:    res.Username,
+			Email:       res.Email,
+			PhoneNumber: res.Phone,
+			FirstName:   res.FirstName,
+			LastName:    res.LastName,
+			DateOfBirth: res.DateOfBirth,
+			Gender:      res.Gender,
+			IsVerified:  res.IsVerified,
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+func (s *service) UnBlockUser(ctx context.Context, id int) error {
+	_, err := s.userAdmin.UnBlockUser(ctx, &user_admin.UnBlockUserRequest{
+		UserId: int32(id),
 	})
 	if err != nil {
 		return err

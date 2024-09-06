@@ -28,6 +28,13 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 
 	auth.GET("/admin/requests", h.listAdminRequests)
 	auth.PUT("/admin/approval", h.adminApproval)
+	auth.GET("/admins", h.listAllAdmins)
+	auth.GET("/admin/:id", h.getAdminById)
+
+	auth.GET("/users", h.listAllUser)
+	auth.GET("/user/:id", h.getUserByID)
+	auth.PATCH("/user/:id", h.blockUser)
+	auth.PATCH("/user/:id", h.unBlockUser)
 
 	auth.POST("/movie/register", h.registerMovie)
 	auth.PUT("/movie/:id", h.updateMovie)
@@ -76,6 +83,7 @@ func (h *Handler) logIn(ctx *gin.Context) {
 	h.responseWithData(ctx, http.StatusOK, "login succesfull", token)
 }
 
+// Admins
 func (h *Handler) listAdminRequests(ctx *gin.Context) {
 	adminLists, err := h.svc.ListAdminRequests(ctx)
 	if err != nil {
@@ -103,6 +111,34 @@ func (h *Handler) adminApproval(ctx *gin.Context) {
 
 	}
 	h.response(ctx, http.StatusOK, "admin approval successfull")
+}
+
+func (h *Handler) listAllAdmins(ctx *gin.Context) {
+	admins, err := h.svc.ListAllAdmins(ctx)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list movies succesfully", admins)
+
+}
+
+func (h *Handler) getAdminById(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	admin, err := h.svc.GetAdminById(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get admin details successfull", admin)
 }
 
 // movies
@@ -149,7 +185,7 @@ func (h *Handler) listMovies(ctx *gin.Context) {
 	movies, err := h.svc.ListMovies(ctx)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusNoContent, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list movies succesfully", movies)
@@ -547,4 +583,67 @@ func (h *Handler) listSeatCategories(ctx *gin.Context) {
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list seat-categories successfully", seatCategories)
+}
+
+// User
+
+func (h *Handler) listAllUser(ctx *gin.Context) {
+	users, err := h.svc.ListAllUser(ctx)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list user successfully", users)
+}
+
+func (h *Handler) getUserByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	user, err := h.svc.GetUserByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get user successfully", user)
+}
+
+func (h *Handler) blockUser(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.BlockUser(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "user blocked successfully")
+}
+
+func (h *Handler) unBlockUser(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.UnBlockUser(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "user unblocked successfully")
 }
