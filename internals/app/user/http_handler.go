@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/aparnasukesh/api-gateway/pkg/common"
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,8 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
 	auth.GET("/profile", h.getProfile)
+	auth.PUT("/profile/:id", h.updateUserProfile)
+
 }
 
 func (h *Handler) register(ctx *gin.Context) {
@@ -96,4 +99,27 @@ func (h *Handler) getProfile(ctx *gin.Context) {
 	}
 
 	h.responseWithData(ctx, http.StatusOK, "User profile details retrieved successfully", profileDetails)
+}
+
+func (h *Handler) updateUserProfile(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	user := &UserProfileDetails{}
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err = h.svc.UpdateUserProfile(ctx, id, *user)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "update user profile successfull")
 }

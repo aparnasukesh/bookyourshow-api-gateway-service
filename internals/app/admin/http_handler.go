@@ -29,7 +29,7 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth := r.Use(h.authHandler.AdminAuthMiddleware())
 
 	auth.GET("/profile/:id", h.getAdminProfile)
-	auth.PUT("profile/:id", h.updateAdminProfile)
+	auth.PUT("/profile/:id", h.updateAdminProfile)
 	// Theater
 	auth.POST("/theater", h.addTheater)
 	auth.DELETE("/theater/:id", h.deleteTheaterByID)
@@ -125,7 +125,7 @@ func (h *Handler) updateAdminProfile(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
-	admin := &Admin{}
+	admin := &AdminProfileDetails{}
 	if err := ctx.ShouldBindJSON(&admin); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))

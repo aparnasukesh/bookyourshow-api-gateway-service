@@ -14,17 +14,18 @@ type Service interface {
 	Login(ctx context.Context, loginData *User) (string, error)
 	GetUserIDFromToken(ctx context.Context, authorization string) (int, error)
 	GetProfile(ctx context.Context, userId int) (*UserProfileDetails, error)
+	UpdateUserProfile(ctx context.Context, id int, user UserProfileDetails) error
 }
 
 type service struct {
-	pb   user_admin.UserServiceClient
-	auth auth.JWT_TokenServiceClient
+	userAdmin user_admin.UserServiceClient
+	auth      auth.JWT_TokenServiceClient
 }
 
 func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient) Service {
 	return &service{
-		pb:   pb,
-		auth: auth,
+		userAdmin: pb,
+		auth:      auth,
 	}
 }
 
@@ -38,7 +39,7 @@ func (s *service) Register(ctx context.Context, signUpData *User) error {
 		LastName:  signUpData.LastName,
 		Gender:    signUpData.Gender,
 	}
-	if _, err := s.pb.RegisterUser(ctx, &reqData); err != nil {
+	if _, err := s.userAdmin.RegisterUser(ctx, &reqData); err != nil {
 		return err
 	}
 	return nil
@@ -49,7 +50,7 @@ func (s *service) RegisterValidate(ctx context.Context, userData *User) error {
 		Email: userData.Email,
 		Otp:   userData.Otp,
 	}
-	if _, err := s.pb.ValidateUser(ctx, &req); err != nil {
+	if _, err := s.userAdmin.ValidateUser(ctx, &req); err != nil {
 		return err
 	}
 	return nil
@@ -59,7 +60,7 @@ func (s *service) Login(ctx context.Context, loginData *User) (string, error) {
 		Email:    loginData.Email,
 		Password: loginData.Password,
 	}
-	res, err := s.pb.LoginUser(ctx, &req)
+	res, err := s.userAdmin.LoginUser(ctx, &req)
 	if err != nil {
 		return "", err
 	}
@@ -82,7 +83,7 @@ func (s *service) GetUserIDFromToken(ctx context.Context, authorization string) 
 }
 
 func (s *service) GetProfile(ctx context.Context, userId int) (*UserProfileDetails, error) {
-	response, err := s.pb.GetUserProfile(ctx, &user_admin.GetProfileRequest{
+	response, err := s.userAdmin.GetUserProfile(ctx, &user_admin.GetProfileRequest{
 		UserId: int32(userId),
 	})
 	if err != nil {
@@ -93,4 +94,20 @@ func (s *service) GetProfile(ctx context.Context, userId int) (*UserProfileDetai
 		return nil, err
 	}
 	return details, nil
+}
+
+func (s *service) UpdateUserProfile(ctx context.Context, id int, user UserProfileDetails) error {
+	_, err := s.userAdmin.UpdateUserProfile(ctx, &user_admin.UpdateUserProfileRequest{
+		UserId:      int32(id),
+		Username:    user.Username,
+		Phone:       user.PhoneNumber,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Gender:      user.Gender,
+		DateOfBirth: user.DateOfBirth,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

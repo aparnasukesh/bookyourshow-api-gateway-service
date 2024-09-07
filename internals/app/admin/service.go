@@ -15,7 +15,7 @@ type Service interface {
 	Login(ctx context.Context, loginData *Admin) (string, error)
 	GetUserIDFromToken(ctx context.Context, authorization string) (int, error)
 	GetAdminProfile(ctx context.Context, id int) (*Admin, error)
-	UpdateAdminProfile(ctx context.Context, id int, admin Admin) error
+	UpdateAdminProfile(ctx context.Context, id int, admin AdminProfileDetails) error
 	//Theater
 	AddTheater(ctx context.Context, theater Theater) error
 	DeleteTheaterByID(ctx context.Context, id int) error
@@ -123,9 +123,9 @@ func (s *service) GetAdminProfile(ctx context.Context, id int) (*Admin, error) {
 		IsVerified:  admin.ProfileDetails.IsVerified,
 	}, nil
 }
-func (s *service) UpdateAdminProfile(ctx context.Context, id int, admin Admin) error {
+func (s *service) UpdateAdminProfile(ctx context.Context, id int, admin AdminProfileDetails) error {
 	_, err := s.userAdmin.UpdateAdminProfile(ctx, &user_admin.UpdateAdminProfileRequest{
-		UserId:      int32(admin.ID),
+		UserId:      int32(id),
 		Username:    admin.Username,
 		Phone:       admin.PhoneNumber,
 		FirstName:   admin.FirstName,
