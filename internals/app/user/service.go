@@ -15,6 +15,8 @@ type Service interface {
 	GetUserIDFromToken(ctx context.Context, authorization string) (int, error)
 	GetProfile(ctx context.Context, userId int) (*UserProfileDetails, error)
 	UpdateUserProfile(ctx context.Context, id int, user UserProfileDetails) error
+	ForgotPassword(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, data ResetPassword) error
 }
 
 type service struct {
@@ -105,6 +107,28 @@ func (s *service) UpdateUserProfile(ctx context.Context, id int, user UserProfil
 		LastName:    user.LastName,
 		Gender:      user.Gender,
 		DateOfBirth: user.DateOfBirth,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) ForgotPassword(ctx context.Context, email string) error {
+	_, err := s.userAdmin.ForgotUserPassword(ctx, &user_admin.ForgotPasswordRequest{
+		Email: email,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) ResetPassword(ctx context.Context, data ResetPassword) error {
+	_, err := s.userAdmin.ResetUserPassword(ctx, &user_admin.ResetPasswordRequest{
+		Email:       data.Email,
+		Otp:         data.Otp,
+		NewPassword: data.NewPassword,
 	})
 	if err != nil {
 		return err

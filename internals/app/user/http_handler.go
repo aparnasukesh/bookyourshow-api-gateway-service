@@ -25,6 +25,8 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.POST("/register", h.register)
 	r.POST("/register/validate", h.registerValidate)
 	r.POST("/login", h.logIn)
+	r.POST("/forgot/password", h.forgotPassword)
+	r.POST("/reset/password", h.resetPassword)
 
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
 	auth.GET("/profile", h.getProfile)
@@ -122,4 +124,36 @@ func (h *Handler) updateUserProfile(ctx *gin.Context) {
 		return
 	}
 	h.response(ctx, http.StatusOK, "update user profile successfull")
+}
+
+func (h *Handler) forgotPassword(ctx *gin.Context) {
+	email := ForgotPassword{}
+	if err := ctx.ShouldBindJSON(&email); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err := h.svc.ForgotPassword(ctx, email.Email)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "otp send successfull")
+}
+
+func (h *Handler) resetPassword(ctx *gin.Context) {
+	data := ResetPassword{}
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	err := h.svc.ResetPassword(ctx, data)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "password reset successfull")
 }

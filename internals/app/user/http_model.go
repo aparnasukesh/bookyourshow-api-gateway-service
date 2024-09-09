@@ -21,3 +21,13 @@ type UserProfileDetails struct {
 	DateOfBirth string `json:"dateofbirth"`
 	Gender      string `json:"gender"`
 }
+
+type ForgotPassword struct {
+	Email string `json:"email"`
+}
+
+type ResetPassword struct {
+	Email       string `json:"email"`
+	Otp         string `json:"otp"`
+	NewPassword string `json:"new_password" validate:"required,min=6,max=12"`
+}

@@ -16,6 +16,8 @@ type Service interface {
 	GetUserIDFromToken(ctx context.Context, authorization string) (int, error)
 	GetAdminProfile(ctx context.Context, id int) (*Admin, error)
 	UpdateAdminProfile(ctx context.Context, id int, admin AdminProfileDetails) error
+	ForgotPassword(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, data ResetPassword) error
 	//Theater
 	AddTheater(ctx context.Context, theater Theater) error
 	DeleteTheaterByID(ctx context.Context, id int) error
@@ -132,6 +134,28 @@ func (s *service) UpdateAdminProfile(ctx context.Context, id int, admin AdminPro
 		LastName:    admin.LastName,
 		Gender:      admin.Gender,
 		DateOfBirth: admin.DateOfBirth,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) ForgotPassword(ctx context.Context, email string) error {
+	_, err := s.userAdmin.ForgotAdminPassword(ctx, &user_admin.ForgotPasswordRequest{
+		Email: email,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) ResetPassword(ctx context.Context, data ResetPassword) error {
+	_, err := s.userAdmin.ResetAdminPassword(ctx, &user_admin.ResetPasswordRequest{
+		Email:       data.Email,
+		Otp:         data.Otp,
+		NewPassword: data.NewPassword,
 	})
 	if err != nil {
 		return err

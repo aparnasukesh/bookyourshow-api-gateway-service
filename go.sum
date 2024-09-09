@@ -16,6 +16,10 @@ github.com/aparnasukesh/inter-communication v1.3.6 h1:38+D6jeDAcB4Tuolw09kqAuifg
 github.com/aparnasukesh/inter-communication v1.3.6/go.mod h1:hGz7ey7vVVbn+qVpBD/V6IXG/DcVuBAfZGHT74NGPKM=
 github.com/aparnasukesh/inter-communication v1.3.7 h1:TDQK7PAfczy/F11C637nX5SKZ37ljQciZq6MekDaKbU=
 github.com/aparnasukesh/inter-communication v1.3.7/go.mod h1:hGz7ey7vVVbn+qVpBD/V6IXG/DcVuBAfZGHT74NGPKM=
+github.com/aparnasukesh/inter-communication v1.3.8 h1:KaV27RDBqVtiadXtLSt24Dh3E3qd0mU9FVnesnJg4+A=
+github.com/aparnasukesh/inter-communication v1.3.8/go.mod h1:hGz7ey7vVVbn+qVpBD/V6IXG/DcVuBAfZGHT74NGPKM=
+github.com/aparnasukesh/inter-communication v1.3.9 h1:L7b6cxdyA0UAwrhfV07gvM9hwUdbBJQYVFOx+bLmjRM=
+github.com/aparnasukesh/inter-communication v1.3.9/go.mod h1:hGz7ey7vVVbn+qVpBD/V6IXG/DcVuBAfZGHT74NGPKM=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
 github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=

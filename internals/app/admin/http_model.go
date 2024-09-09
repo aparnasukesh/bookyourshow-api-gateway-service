@@ -13,6 +13,7 @@ type Admin struct {
 	DateOfBirth string `json:"date_of_birth"`
 	Gender      string `json:"gender"`
 	IsVerified  bool   `json:"is_verified"`
+	OTP         string `json:"otp"`
 }
 
 type AdminProfileDetails struct {
@@ -78,4 +79,14 @@ type Showtime struct {
 	ScreenID int       `json:"screen_id"`
 	ShowDate time.Time `json:"show_date"`
 	ShowTime time.Time `json:"show_time"`
+}
+
+type ForgotPassword struct {
+	Email string `json:"email"`
+}
+
+type ResetPassword struct {
+	Email       string `json:"email"`
+	Otp         string `json:"otp"`
+	NewPassword string `json:"new_password" validate:"required,min=6,max=12"`
 }
