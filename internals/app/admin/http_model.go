@@ -90,3 +90,10 @@ type ResetPassword struct {
 	Otp         string `json:"otp"`
 	NewPassword string `json:"new_password" validate:"required,min=6,max=12"`
 }
+
+type MovieSchedule struct {
+	ID         uint `json:"id"`
+	MovieID    int  `json:"movie_id"`
+	TheaterID  int  `json:"theater_id"`
+	ShowtimeID int  `json:"showtime_id"`
+}

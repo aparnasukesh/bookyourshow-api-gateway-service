@@ -63,7 +63,279 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.GET("/showtime", h.getShowtimeByDetails)
 	auth.PUT("/showtime/:id", h.updateShowtime)
 	auth.GET("/showtimes", h.listShowtimes)
+	// Movie Schedule
+	auth.POST("/movie/schedule", h.addMovieSchedule)
+	auth.PUT("/movie/schedule/:id", h.updateMovieSchedule)
+	auth.GET("/movie/schedules", h.getAllMovieSchedules)
+	auth.GET("/movie/schedule/movieid", h.getMovieScheduleByMovieID)
+	auth.GET("/movie/schedule/theaterid", h.getMovieScheduleByTheaterID)
+	auth.GET("/movie/schedule/movieid/theaterid", h.getMovieScheduleByMovieIdAndTheaterId)
+	auth.GET("/movie/schedule/movieid/showtimeid", h.getMovieScheduleByMovieIdAndShowTimeId)
+	auth.GET("/movie/schedule/theaterid/showtimeid", h.getMovieScheduleByTheaterIdAndShowTimeId)
+	auth.GET("/movie/schedule/:id", h.getMovieScheduleByID)
+	auth.DELETE("/movie/schedule/:id", h.deleteMovieScheduleById)
+	auth.DELETE("/movie/schedule/movieid/theaterid", h.deleteMovieScheduleByMovieIdAndTheaterId)
+	auth.DELETE("/movie/schedule/movieid/theaterid/showtimeid", h.deleteMovieScheduleByMovieIdAndTheaterIdAndShowTimeId)
 }
+
+// Movie Schedule
+func (h *Handler) addMovieSchedule(ctx *gin.Context) {
+	var movieSchedule MovieSchedule
+	if err := ctx.BindJSON(&movieSchedule); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+
+	err := h.svc.AddMovieSchedule(ctx, movieSchedule)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.response(ctx, http.StatusOK, "Movie schedule added successfully")
+}
+
+func (h *Handler) updateMovieSchedule(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	var updateData MovieSchedule
+	if err := ctx.BindJSON(&updateData); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+
+	err = h.svc.UpdateMovieSchedule(ctx, id, updateData)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.response(ctx, http.StatusOK, "Movie schedule updated successfully")
+}
+
+func (h *Handler) getAllMovieSchedules(ctx *gin.Context) {
+	movieSchedules, err := h.svc.GetAllMovieSchedules(ctx)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "movie schedule details retrieved successfully", movieSchedules)
+}
+
+func (h *Handler) getMovieScheduleByMovieID(ctx *gin.Context) {
+	movieIDstr := ctx.Query("movieid")
+	movieID, err := strconv.Atoi(movieIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieSchedules, err := h.svc.GetMovieScheduleByMovieID(ctx, movieID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "movie schedule details retrieved successfully", movieSchedules)
+}
+
+func (h *Handler) getMovieScheduleByTheaterID(ctx *gin.Context) {
+	theaterIDstr := ctx.Query("theaterid")
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieSchedules, err := h.svc.GetMovieScheduleByTheaterID(ctx, theaterID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "movie schedule details retrieved successfully", movieSchedules)
+}
+
+func (h *Handler) getMovieScheduleByMovieIdAndTheaterId(ctx *gin.Context) {
+	movieIDstr := ctx.Query("movieid")
+	theaterIDstr := ctx.Query("theaterid")
+	movieID, err := strconv.Atoi(movieIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieSchedules, err := h.svc.GetMovieScheduleByMovieIdAndTheaterId(ctx, movieID, theaterID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "movie schedule details retrieved successfully", movieSchedules)
+}
+
+func (h *Handler) getMovieScheduleByMovieIdAndShowTimeId(ctx *gin.Context) {
+	movieIDstr := ctx.Query("movieid")
+	showTimeIDstr := ctx.Query("showtimeid")
+	showTimeID, err := strconv.Atoi(showTimeIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieID, err := strconv.Atoi(movieIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieSchedules, err := h.svc.GetMovieScheduleByMovieIdAndShowTimeId(ctx, movieID, showTimeID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "movie schedule details retrieved successfully", movieSchedules)
+}
+
+func (h *Handler) getMovieScheduleByTheaterIdAndShowTimeId(ctx *gin.Context) {
+	theaterIDstr := ctx.Query("theaterid")
+	showTimeIDstr := ctx.Query("showtimeid")
+	showTimeID, err := strconv.Atoi(showTimeIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieSchedules, err := h.svc.GetMovieScheduleByTheaterIdAndShowTimeId(ctx, theaterID, showTimeID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "movie schedule details retrieved successfully", movieSchedules)
+}
+
+func (h *Handler) getMovieScheduleByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieSchedule, err := h.svc.GetMovieScheduleByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "movie schedule details retrieved successfully", movieSchedule)
+}
+
+func (h *Handler) deleteMovieScheduleById(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteMovieScheduleById(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.response(ctx, http.StatusOK, "movie schedule deleted successfully")
+}
+
+func (h *Handler) deleteMovieScheduleByMovieIdAndTheaterId(ctx *gin.Context) {
+	movieIDstr := ctx.Query("movieid")
+	theaterIDstr := ctx.Query("theaterid")
+	movieID, err := strconv.Atoi(movieIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteMovieScheduleByMovieIdAndTheaterId(ctx, movieID, theaterID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.response(ctx, http.StatusOK, "movie schedule deleted successfully")
+}
+
+func (h *Handler) deleteMovieScheduleByMovieIdAndTheaterIdAndShowTimeId(ctx *gin.Context) {
+	movieIDstr := ctx.Query("movieid")
+	theaterIDstr := ctx.Query("theaterid")
+	showTimeIDstr := ctx.Query("showtimeid")
+	movieID, err := strconv.Atoi(movieIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	showTimeID, err := strconv.Atoi(showTimeIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteMovieScheduleByMovieIdAndTheaterIdAndShowTimeId(ctx, movieID, theaterID, showTimeID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.response(ctx, http.StatusOK, "movie schedule deleted successfully")
+}
+
+// Admin
 func (h *Handler) register(ctx *gin.Context) {
 	userData := Admin{}
 	if err := ctx.BindJSON(&userData); err != nil {
