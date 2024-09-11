@@ -3,6 +3,7 @@ package admin
 import (
 	"errors"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -76,6 +77,153 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.DELETE("/movie/schedule/:id", h.deleteMovieScheduleById)
 	auth.DELETE("/movie/schedule/movieid/theaterid", h.deleteMovieScheduleByMovieIdAndTheaterId)
 	auth.DELETE("/movie/schedule/movieid/theaterid/showtimeid", h.deleteMovieScheduleByMovieIdAndTheaterIdAndShowTimeId)
+	// Seats
+	auth.POST("/seat", h.createSeats)
+	auth.GET("/seat/screenid", h.getSeatByScreenId)
+	auth.GET("/seat/:id", h.getSeatById)
+	auth.GET("/seat/screenid/seatnumber", h.getSeatBySeatNumberAndScreenId)
+	auth.DELETE("/seat/:id", h.deleteSeatById)
+	auth.DELETE("/seat/screenid/seatnumber", h.deleteSeatBySeatNumberAndScreenId)
+}
+
+// Seats
+func (h *Handler) createSeats(ctx *gin.Context) {
+	var req CreateSeatsRequest
+	if err := ctx.BindJSON(&req); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	validRowRegex := regexp.MustCompile(`^[A-Z]$`)
+	for _, category := range req.SeatRequest {
+		if !validRowRegex.MatchString(category.RowStart) {
+			h.responseWithError(ctx, http.StatusBadRequest, errors.New("RowStart must be a capital letter between A and Z"))
+			return
+		}
+		if !validRowRegex.MatchString(category.RowEnd) {
+			h.responseWithError(ctx, http.StatusBadRequest, errors.New("RowEnd must be a capital letter between A and Z"))
+			return
+		}
+	}
+	err := h.svc.CreateSeats(ctx, req)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "Seats created successfully")
+}
+
+func (h *Handler) getSeatByScreenId(ctx *gin.Context) {
+	screenIdstr := ctx.Query("screenid")
+	if screenIdstr == "" {
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New("screen_id is required"))
+		return
+	}
+	screenId, err := strconv.Atoi(screenIdstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	seats, err := h.svc.GetSeatsByScreenId(ctx, screenId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "seats retrived successfull", seats)
+}
+
+func (h *Handler) getSeatById(ctx *gin.Context) {
+	seatIdstr := ctx.Param("id")
+	if seatIdstr == "" {
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New("seat_id is required"))
+		return
+	}
+	seatId, err := strconv.Atoi(seatIdstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	seat, err := h.svc.GetSeatById(ctx, seatId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "seats retrived successfull", seat)
+}
+
+func (h *Handler) getSeatBySeatNumberAndScreenId(ctx *gin.Context) {
+	screenIdstr := ctx.Query("screenid")
+	seatNumber := ctx.Query("seatnumber")
+	if screenIdstr == "" || seatNumber == "" {
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New("screen_id and seat_number are required"))
+		return
+	}
+	screenId, err := strconv.Atoi(screenIdstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	seat, err := h.svc.GetSeatBySeatNumberAndScreenId(ctx, screenId, seatNumber)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "seats retrived successfull", seat)
+}
+
+func (h *Handler) deleteSeatById(ctx *gin.Context) {
+	seatIdstr := ctx.Param("id")
+	if seatIdstr == "" {
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New("seat_id is required"))
+		return
+	}
+	seatId, err := strconv.Atoi(seatIdstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteSeatById(ctx, seatId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.response(ctx, http.StatusOK, "Seat deleted successfully")
+}
+
+func (h *Handler) deleteSeatBySeatNumberAndScreenId(ctx *gin.Context) {
+	screenIdstr := ctx.Query("screenid")
+	seatNumber := ctx.Query("seatnumber")
+	if screenIdstr == "" || seatNumber == "" {
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New("screen_id and seat_number are required"))
+		return
+	}
+	screenId, err := strconv.Atoi(screenIdstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	err = h.svc.DeleteSeatBySeatNumberAndScreenId(ctx, screenId, seatNumber)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.response(ctx, http.StatusOK, "Seat deleted successfully")
 }
 
 // Movie Schedule

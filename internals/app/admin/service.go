@@ -63,6 +63,13 @@ type Service interface {
 	DeleteMovieScheduleById(ctx context.Context, id int) error
 	DeleteMovieScheduleByMovieIdAndTheaterId(ctx context.Context, movieId, theaterId int) error
 	DeleteMovieScheduleByMovieIdAndTheaterIdAndShowTimeId(ctx context.Context, movieId, theaterId, showTimeId int) error
+	// Seats
+	CreateSeats(ctx context.Context, req CreateSeatsRequest) error
+	GetSeatsByScreenId(ctx context.Context, screenId int) ([]Seat, error)
+	GetSeatById(ctx context.Context, id int) (*Seat, error)
+	GetSeatBySeatNumberAndScreenId(ctx context.Context, screenId int, seatNumber string) (*Seat, error)
+	DeleteSeatById(ctx context.Context, id int) error
+	DeleteSeatBySeatNumberAndScreenId(ctx context.Context, screenId int, seatNumber string) error
 }
 
 type service struct {
@@ -77,6 +84,104 @@ func NewService(pb user_admin.AdminServiceClient, auth auth.JWT_TokenServiceClie
 	}
 }
 
+// Seats
+func (s *service) CreateSeats(ctx context.Context, req CreateSeatsRequest) error {
+	rowSeatCategoryPrice := []*user_admin.RowAndSeatCategoryPrice{}
+	for _, row := range req.SeatRequest {
+		rowSeatPrice := user_admin.RowAndSeatCategoryPrice{
+			RowStart:          row.RowStart,
+			RowEnd:            row.RowEnd,
+			SeatCategoryId:    int32(row.SeatCategoryId),
+			SeatCategoryPrice: float64(row.SeatCategoryPrice),
+		}
+		rowSeatCategoryPrice = append(rowSeatCategoryPrice, &rowSeatPrice)
+	}
+	_, err := s.userAdmin.CreateSeats(ctx, &user_admin.CreateSeatsRequest{
+		ScreenId:          int32(req.ScreenId),
+		TotalRows:         int32(req.TotalRows),
+		TotalColumns:      int32(req.TotalColumns),
+		RowseatCategories: rowSeatCategoryPrice,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s *service) DeleteSeatById(ctx context.Context, id int) error {
+	_, err := s.userAdmin.DeleteSeatByID(ctx, &user_admin.DeleteSeatByIdRequest{Id: int32(id)})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s *service) DeleteSeatBySeatNumberAndScreenId(ctx context.Context, screenId int, seatNumber string) error {
+	_, err := s.userAdmin.DeleteSeatBySeatNumberAndScreenID(ctx, &user_admin.DeleteSeatBySeatNumberAndScreenIDRequest{
+		ScreenId:   int32(screenId),
+		SeatNumber: seatNumber,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s *service) GetSeatById(ctx context.Context, id int) (*Seat, error) {
+	resp, err := s.userAdmin.GetSeatByID(ctx, &user_admin.GetSeatByIdRequest{Id: int32(id)})
+	if err != nil {
+		return nil, err
+	}
+	seat := &Seat{
+		ID:                int(resp.Seat.Id),
+		ScreenID:          int(resp.Seat.ScreenId),
+		SeatNumber:        resp.Seat.SeatNumber,
+		Row:               resp.Seat.Row,
+		Column:            int(resp.Seat.Column),
+		SeatCategoryID:    int(resp.Seat.SeatCategoryId),
+		SeatCategoryPrice: resp.Seat.SeatCategoryPrice,
+	}
+
+	return seat, nil
+}
+func (s *service) GetSeatBySeatNumberAndScreenId(ctx context.Context, screenId int, seatNumber string) (*Seat, error) {
+	resp, err := s.userAdmin.GetSeatBySeatNumberAndScreenID(ctx, &user_admin.GetSeatBySeatNumberAndScreenIdRequest{
+		ScreenId:   int32(screenId),
+		SeatNumber: seatNumber,
+	})
+	if err != nil {
+		return nil, err
+	}
+	seat := &Seat{
+		ID:                int(resp.Seat.Id),
+		ScreenID:          int(resp.Seat.ScreenId),
+		SeatNumber:        resp.Seat.SeatNumber,
+		Row:               resp.Seat.Row,
+		Column:            int(resp.Seat.Column),
+		SeatCategoryID:    int(resp.Seat.SeatCategoryId),
+		SeatCategoryPrice: resp.Seat.SeatCategoryPrice,
+	}
+
+	return seat, nil
+}
+func (s *service) GetSeatsByScreenId(ctx context.Context, screenId int) ([]Seat, error) {
+	resp, err := s.userAdmin.GetSeatsByScreenID(ctx, &user_admin.GetSeatsByScreenIDRequest{ScreenId: int32(screenId)})
+	if err != nil {
+		return nil, err
+	}
+	seats := make([]Seat, len(resp.Seats))
+	for i, seat := range resp.Seats {
+		seats[i] = Seat{
+			ID:                int(seat.Id),
+			ScreenID:          int(seat.ScreenId),
+			SeatNumber:        seat.SeatNumber,
+			Row:               seat.Row,
+			Column:            int(seat.Column),
+			SeatCategoryID:    int(seat.SeatCategoryId),
+			SeatCategoryPrice: seat.SeatCategoryPrice,
+		}
+	}
+	return seats, nil
+}
+
+// Admin
 func (s *service) GetUserIDFromToken(ctx context.Context, authorization string) (int, error) {
 	tokenParts := strings.Split(authorization, "Bearer ")
 	token := tokenParts[1]

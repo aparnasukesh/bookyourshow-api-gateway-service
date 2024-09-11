@@ -97,3 +97,27 @@ type MovieSchedule struct {
 	TheaterID  int  `json:"theater_id"`
 	ShowtimeID int  `json:"showtime_id"`
 }
+type RowSeatCategoryPrice struct {
+	RowStart          string  `json:"row_start"`
+	RowEnd            string  `json:"row_end"`
+	SeatCategoryId    int     `json:"seat_category_id"`
+	SeatCategoryPrice float32 `json:"seat_category_price"`
+}
+
+type CreateSeatsRequest struct {
+	ID           int                    `json:"id"`
+	ScreenId     int                    `json:"screen_id"`
+	TotalRows    int                    `json:"total_rows"`
+	TotalColumns int                    `json:"total_columns"`
+	SeatRequest  []RowSeatCategoryPrice `json:"seat_request"`
+}
+
+type Seat struct {
+	ID                int     `json:"id"`
+	ScreenID          int     `json:"screen_id"`
+	SeatNumber        string  `json:"seat_number"`
+	Row               string  `json:"row"`
+	Column            int     `json:"column"`
+	SeatCategoryID    int     `json:"seat_category_id"`
+	SeatCategoryPrice float64 `json:"seat_category_price"`
+}
