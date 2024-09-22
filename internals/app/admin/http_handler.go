@@ -88,6 +88,12 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 
 // Seats
 func (h *Handler) createSeats(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	var req CreateSeatsRequest
 	if err := ctx.BindJSON(&req); err != nil {
 		formattedError := ExtractErrorMessage(err)
@@ -105,7 +111,7 @@ func (h *Handler) createSeats(ctx *gin.Context) {
 			return
 		}
 	}
-	err := h.svc.CreateSeats(ctx, req)
+	err = h.svc.CreateSeats(ctx, req, userId)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
@@ -228,6 +234,12 @@ func (h *Handler) deleteSeatBySeatNumberAndScreenId(ctx *gin.Context) {
 
 // Movie Schedule
 func (h *Handler) addMovieSchedule(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	var movieSchedule MovieSchedule
 	if err := ctx.BindJSON(&movieSchedule); err != nil {
 		formattedError := ExtractErrorMessage(err)
@@ -235,7 +247,7 @@ func (h *Handler) addMovieSchedule(ctx *gin.Context) {
 		return
 	}
 
-	err := h.svc.AddMovieSchedule(ctx, movieSchedule)
+	err = h.svc.AddMovieSchedule(ctx, movieSchedule, userId)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
@@ -253,6 +265,12 @@ func (h *Handler) updateMovieSchedule(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	var updateData MovieSchedule
 	if err := ctx.BindJSON(&updateData); err != nil {
 		formattedError := ExtractErrorMessage(err)
@@ -260,7 +278,7 @@ func (h *Handler) updateMovieSchedule(ctx *gin.Context) {
 		return
 	}
 
-	err = h.svc.UpdateMovieSchedule(ctx, id, updateData)
+	err = h.svc.UpdateMovieSchedule(ctx, id, updateData, userId)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
@@ -690,12 +708,19 @@ func (h *Handler) updateTheater(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	theater := &Theater{}
 	if err := ctx.ShouldBindJSON(&theater); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
+	theater.OwnerID = uint(userId)
 	err = h.svc.UpdateTheater(ctx, id, *theater)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
@@ -766,13 +791,19 @@ func (h *Handler) listSeatCategories(ctx *gin.Context) {
 
 // Theater screen
 func (h *Handler) addTheaterScreen(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	theaterScreen := &TheaterScreen{}
 	if err := ctx.ShouldBindJSON(&theaterScreen); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	err := h.svc.AddTheaterScreen(ctx, *theaterScreen)
+	err = h.svc.AddTheaterScreen(ctx, userId, *theaterScreen)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
@@ -863,13 +894,19 @@ func (h *Handler) updateTheaterScreen(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	theaterScreen := &TheaterScreen{}
 	if err := ctx.ShouldBindJSON(&theaterScreen); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	err = h.svc.UpdateTheaterScreen(ctx, id, *theaterScreen)
+	err = h.svc.UpdateTheaterScreen(ctx, id, userId, *theaterScreen)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
@@ -896,13 +933,19 @@ func (h *Handler) listTheaterScreens(ctx *gin.Context) {
 
 // Show times
 func (h *Handler) addShowtime(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	showtime := &Showtime{}
 	if err := ctx.ShouldBindJSON(&showtime); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	err := h.svc.AddShowtime(ctx, *showtime)
+	err = h.svc.AddShowtime(ctx, *showtime, userId)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
@@ -993,13 +1036,19 @@ func (h *Handler) updateShowtime(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
 	showtime := &Showtime{}
 	if err := ctx.ShouldBindJSON(&showtime); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	err = h.svc.UpdateShowtime(ctx, id, *showtime)
+	err = h.svc.UpdateShowtime(ctx, id, *showtime, userId)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))

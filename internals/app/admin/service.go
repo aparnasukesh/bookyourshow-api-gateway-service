@@ -35,24 +35,24 @@ type Service interface {
 	//Seat categories
 	ListSeatCategories(ctx context.Context) ([]SeatCategory, error)
 	//Theater screen
-	AddTheaterScreen(ctx context.Context, theaterScreen TheaterScreen) error
+	AddTheaterScreen(ctx context.Context, ownerId int, theaterScreen TheaterScreen) error
 	DeleteTheaterScreenByID(ctx context.Context, id int) error
 	DeleteTheaterScreenByNumber(ctx context.Context, theaterID int, screenNumber int) error
 	GetTheaterScreenByID(ctx context.Context, id int) (*TheaterScreen, error)
 	GetTheaterScreenByNumber(ctx context.Context, theaterID int, screenNumber int) (*TheaterScreen, error)
-	UpdateTheaterScreen(ctx context.Context, id int, theaterScreen TheaterScreen) error
+	UpdateTheaterScreen(ctx context.Context, id int, ownerId int, theaterScreen TheaterScreen) error
 	ListTheaterScreens(ctx context.Context, theaterId int) ([]TheaterScreen, error)
 	//Show Time
-	AddShowtime(ctx context.Context, showtime Showtime) error
+	AddShowtime(ctx context.Context, showtime Showtime, ownerId int) error
 	DeleteShowtimeByID(ctx context.Context, id int) error
 	DeleteShowtimeByDetails(ctx context.Context, movieID int, screenID int, showDate time.Time, showTime time.Time) error
 	GetShowtimeByID(ctx context.Context, id int) (*Showtime, error)
 	GetShowtimeByDetails(ctx context.Context, movieID int, screenID int, showDate time.Time, showTime time.Time) (*Showtime, error)
-	UpdateShowtime(ctx context.Context, id int, showtime Showtime) error
+	UpdateShowtime(ctx context.Context, id int, showtime Showtime, ownerId int) error
 	ListShowtimes(ctx context.Context, movieID int) ([]Showtime, error)
 	//Show time
-	AddMovieSchedule(ctx context.Context, movieSchedule MovieSchedule) error
-	UpdateMovieSchedule(ctx context.Context, id int, updateData MovieSchedule) error
+	AddMovieSchedule(ctx context.Context, movieSchedule MovieSchedule, ownerId int) error
+	UpdateMovieSchedule(ctx context.Context, id int, updateData MovieSchedule, ownerId int) error
 	GetAllMovieSchedules(ctx context.Context) ([]MovieSchedule, error)
 	GetMovieScheduleByMovieID(ctx context.Context, id int) ([]MovieSchedule, error)
 	GetMovieScheduleByTheaterID(ctx context.Context, id int) ([]MovieSchedule, error)
@@ -64,7 +64,7 @@ type Service interface {
 	DeleteMovieScheduleByMovieIdAndTheaterId(ctx context.Context, movieId, theaterId int) error
 	DeleteMovieScheduleByMovieIdAndTheaterIdAndShowTimeId(ctx context.Context, movieId, theaterId, showTimeId int) error
 	// Seats
-	CreateSeats(ctx context.Context, req CreateSeatsRequest) error
+	CreateSeats(ctx context.Context, req CreateSeatsRequest, ownerId int) error
 	GetSeatsByScreenId(ctx context.Context, screenId int) ([]Seat, error)
 	GetSeatById(ctx context.Context, id int) (*Seat, error)
 	GetSeatBySeatNumberAndScreenId(ctx context.Context, screenId int, seatNumber string) (*Seat, error)
@@ -85,7 +85,7 @@ func NewService(pb user_admin.AdminServiceClient, auth auth.JWT_TokenServiceClie
 }
 
 // Seats
-func (s *service) CreateSeats(ctx context.Context, req CreateSeatsRequest) error {
+func (s *service) CreateSeats(ctx context.Context, req CreateSeatsRequest, ownerId int) error {
 	rowSeatCategoryPrice := []*user_admin.RowAndSeatCategoryPrice{}
 	for _, row := range req.SeatRequest {
 		rowSeatPrice := user_admin.RowAndSeatCategoryPrice{
@@ -101,6 +101,7 @@ func (s *service) CreateSeats(ctx context.Context, req CreateSeatsRequest) error
 		TotalRows:         int32(req.TotalRows),
 		TotalColumns:      int32(req.TotalColumns),
 		RowseatCategories: rowSeatCategoryPrice,
+		OwnerId:           int32(ownerId),
 	})
 	if err != nil {
 		return err
@@ -489,9 +490,8 @@ func (s *service) ListSeatCategories(ctx context.Context) ([]SeatCategory, error
 }
 
 // Theater screen
-// TheaterScreen
-func (s *service) AddTheaterScreen(ctx context.Context, theaterScreen TheaterScreen) error {
-	_, err := s.userAdmin.AddTheaterScreen(ctx, &user_admin.AddTheaterScreenRequest{
+func (s *service) AddTheaterScreen(ctx context.Context, ownerId int, theaterScreen TheaterScreen) error {
+	_, err := s.userAdmin.AddTheaterScreen(ctx, &user_admin.AddTheaterScreenRequest{OwnerId: int32(ownerId),
 		TheaterScreen: &user_admin.TheaterScreen{
 			ID:           uint32(theaterScreen.ID),
 			TheaterID:    int32(theaterScreen.TheaterID),
@@ -582,8 +582,8 @@ func (s *service) ListTheaterScreens(ctx context.Context, theaterID int) ([]Thea
 	return theaterScreens, nil
 }
 
-func (s *service) UpdateTheaterScreen(ctx context.Context, id int, theaterScreen TheaterScreen) error {
-	_, err := s.userAdmin.UpdateTheaterScreen(ctx, &user_admin.UpdateTheaterScreenRequest{
+func (s *service) UpdateTheaterScreen(ctx context.Context, id int, ownerId int, theaterScreen TheaterScreen) error {
+	_, err := s.userAdmin.UpdateTheaterScreen(ctx, &user_admin.UpdateTheaterScreenRequest{OwnerId: int32(ownerId),
 		TheaterScreen: &user_admin.TheaterScreen{
 			ID:           uint32(id),
 			TheaterID:    int32(theaterScreen.TheaterID),
@@ -599,8 +599,8 @@ func (s *service) UpdateTheaterScreen(ctx context.Context, id int, theaterScreen
 }
 
 // Show Times
-func (s *service) AddShowtime(ctx context.Context, showtime Showtime) error {
-	_, err := s.userAdmin.AddShowtime(ctx, &user_admin.AddShowtimeRequest{
+func (s *service) AddShowtime(ctx context.Context, showtime Showtime, ownerId int) error {
+	_, err := s.userAdmin.AddShowtime(ctx, &user_admin.AddShowtimeRequest{OwnerId: int32(ownerId),
 		Showtime: &user_admin.Showtime{
 			Id:       uint32(showtime.ID),
 			MovieId:  int32(showtime.MovieID),
@@ -673,8 +673,8 @@ func (s *service) GetShowtimeByDetails(ctx context.Context, movieID, screenID in
 	}, nil
 }
 
-func (s *service) UpdateShowtime(ctx context.Context, id int, showtime Showtime) error {
-	_, err := s.userAdmin.UpdateShowtime(ctx, &user_admin.UpdateShowtimeRequest{
+func (s *service) UpdateShowtime(ctx context.Context, id int, showtime Showtime, ownerId int) error {
+	_, err := s.userAdmin.UpdateShowtime(ctx, &user_admin.UpdateShowtimeRequest{OwnerId: int32(ownerId),
 		Showtime: &user_admin.Showtime{
 			Id:       uint32(id),
 			MovieId:  int32(showtime.MovieID),
@@ -712,13 +712,13 @@ func (s *service) ListShowtimes(ctx context.Context, movieID int) ([]Showtime, e
 }
 
 // Movie Schedule
-func (s *service) AddMovieSchedule(ctx context.Context, movieSchedule MovieSchedule) error {
+func (s *service) AddMovieSchedule(ctx context.Context, movieSchedule MovieSchedule, ownerId int) error {
 	_, err := s.userAdmin.AddMovieSchedule(ctx, &user_admin.AddMovieScheduleRequest{
 		MovieSchedule: &user_admin.MovieSchedule{
 			MovieId:    int32(movieSchedule.MovieID),
 			TheaterId:  int32(movieSchedule.TheaterID),
 			ShowtimeId: int32(movieSchedule.ShowtimeID),
-		},
+		}, OwnerId: int32(ownerId),
 	})
 	if err != nil {
 		return err
@@ -897,14 +897,14 @@ func (s *service) GetMovieScheduleByTheaterIdAndShowTimeId(ctx context.Context, 
 	return movieSchedules, nil
 }
 
-func (s *service) UpdateMovieSchedule(ctx context.Context, id int, updateData MovieSchedule) error {
+func (s *service) UpdateMovieSchedule(ctx context.Context, id int, updateData MovieSchedule, ownerId int) error {
 	_, err := s.userAdmin.UpdateMovieSchedule(ctx, &user_admin.UpdateMovieScheduleRequest{
 		MovieSchedule: &user_admin.MovieSchedule{
 			Id:         int32(id),
 			MovieId:    int32(updateData.MovieID),
 			TheaterId:  int32(updateData.TheaterID),
 			ShowtimeId: int32(updateData.ShowtimeID),
-		},
+		}, OwnerId: int32(ownerId),
 	})
 	if err != nil {
 		return err
