@@ -26,7 +26,9 @@ func InitUserModule(cfg config.Config) (*user.Handler, error) {
 	if err != nil {
 		log.Fatalf("Error happened while TokenServiceClient module initialization")
 	}
-	svc := user.NewService(pb, auth)
+	movieBooking, theater, err := grpcclient.NewMovieBookingGrpcClint(cfg.MovieBookingPort)
+
+	svc := user.NewService(pb, auth, movieBooking, theater)
 	userHandler := user.NewHttpHandler(svc, authHandler)
 	return userHandler, nil
 }
@@ -62,7 +64,7 @@ func InitSuperAdminModule(cfg config.Config) (*superadmin.Handler, error) {
 	if err != nil {
 		log.Fatalf("Error happened while TokenServiceClient module initialization")
 	}
-	movieBooking, err := grpcclient.NewMovieBookingGrpcClint(cfg.MovieBookingPort)
+	movieBooking, _, err := grpcclient.NewMovieBookingGrpcClint(cfg.MovieBookingPort)
 	svc := superadmin.NewService(pb, auth, movieBooking)
 	adminHandler := superadmin.NewHttpHandler(svc, authHandler)
 	return adminHandler, nil

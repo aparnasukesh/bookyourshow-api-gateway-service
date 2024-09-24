@@ -28,6 +28,21 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.POST("/forgot/password", h.forgotPassword)
 	r.POST("/reset/password", h.resetPassword)
 
+	r.GET("/movies", h.listAllMovies)
+	r.GET("/movie/:id", h.getMovieDetailsByID)
+	r.GET("/movie/name", h.getMovieByName)
+	r.GET("/movie/genre", h.getMoviesByGenre)
+	r.GET("/movie/language", h.getMoviesByLanguage)
+
+	r.GET("/theaters", h.listAllTheaters)
+	r.GET("/theater/:id", h.getTheaterByID)
+	r.GET("/theaters/name", h.getTheatersByName)
+	r.GET("/theaters/city", h.getTheatersByCity)
+	r.GET("/theaters/movie/name", h.getTheatersByMovieName)
+	r.GET("/theater/details/:id", h.getScreensAndMovieScedulesByTheaterID)
+	r.GET("/theater/showtime/:id", h.listShowTimeByTheaterID)
+	r.GET("/theaters/:theater_id/movies/:movie_id/showtimes", h.listShowTimeByTheaterIDandMovieID)
+
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
 	auth.GET("/profile", h.getProfile)
 	auth.PUT("/profile/:id", h.updateUserProfile)
@@ -156,4 +171,184 @@ func (h *Handler) resetPassword(ctx *gin.Context) {
 		return
 	}
 	h.response(ctx, http.StatusOK, "password reset successfull")
+}
+
+// Movies
+func (h *Handler) listAllMovies(ctx *gin.Context) {
+	movies, err := h.svc.ListAllMovies(ctx)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list all movies successfully", movies)
+}
+
+func (h *Handler) getMovieDetailsByID(ctx *gin.Context) {
+	movieIDstr := ctx.Param("id")
+	movieID, err := strconv.Atoi(movieIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movie, err := h.svc.GetMovieDetailsByID(ctx, movieID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get movie details successfully", movie)
+}
+
+func (h *Handler) getMovieByName(ctx *gin.Context) {
+	movieName := ctx.Query("name")
+	movie, err := h.svc.GetMovieByName(ctx, movieName)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get movie by name successfully", movie)
+}
+
+func (h *Handler) getMoviesByGenre(ctx *gin.Context) {
+	genre := ctx.Query("genre")
+	movies, err := h.svc.GetMoviesByGenre(ctx, genre)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get movies by genre successfully", movies)
+}
+
+func (h *Handler) getMoviesByLanguage(ctx *gin.Context) {
+	language := ctx.Query("language")
+	movies, err := h.svc.GetMoviesByLanguage(ctx, language)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get movies by language successfully", movies)
+}
+
+// Theaters
+func (h *Handler) listAllTheaters(ctx *gin.Context) {
+	theaters, err := h.svc.ListAllTheaters(ctx)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list all theaters successfully", theaters)
+}
+
+func (h *Handler) getTheaterByID(ctx *gin.Context) {
+	theaterIDstr := ctx.Param("id")
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	theater, err := h.svc.GetTheaterByID(ctx, theaterID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theater by ID successfully", theater)
+}
+
+func (h *Handler) getTheatersByCity(ctx *gin.Context) {
+	city := ctx.Query("city")
+	theaters, err := h.svc.GetTheatersByCity(ctx, city)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theaters by city successfully", theaters)
+}
+
+func (h *Handler) getTheatersByName(ctx *gin.Context) {
+	theaterName := ctx.Query("name")
+	theaters, err := h.svc.GetTheatersByName(ctx, theaterName)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theaters by name successfully", theaters)
+}
+
+func (h *Handler) getTheatersByMovieName(ctx *gin.Context) {
+	movieName := ctx.Query("movie_name")
+	theaters, err := h.svc.GetTheatersByMovieName(ctx, movieName)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get theaters by movie name successfully", theaters)
+}
+
+func (h *Handler) getScreensAndMovieScedulesByTheaterID(ctx *gin.Context) {
+	theaterIDstr := ctx.Param("id")
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	screens, err := h.svc.GetScreensAndMovieSchedulesByTheaterID(ctx, theaterID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get screens and movie schedules by theater ID successfully", screens)
+}
+
+func (h *Handler) listShowTimeByTheaterID(ctx *gin.Context) {
+	theaterIDstr := ctx.Param("id")
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	showtimes, err := h.svc.ListShowTimeByTheaterID(ctx, theaterID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list showtimes by theater ID successfully", showtimes)
+}
+
+func (h *Handler) listShowTimeByTheaterIDandMovieID(ctx *gin.Context) {
+	theaterIDstr := ctx.Param("theater_id")
+	movieIDstr := ctx.Param("movie_id")
+	theaterID, err := strconv.Atoi(theaterIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	movieID, err := strconv.Atoi(movieIDstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	showtimes, err := h.svc.ListShowTimeByTheaterIDandMovieID(ctx, theaterID, movieID)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list showtimes by theater ID and movie ID successfully", showtimes)
 }
