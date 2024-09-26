@@ -39,7 +39,7 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.GET("/theater/:id", h.getTheaterByID)
 	r.GET("/theaters/name", h.getTheatersByName)
 	r.GET("/theaters/city", h.getTheatersByCity)
-	r.GET("/theaters/movie/name", h.getTheatersByMovieName)
+	r.GET("/theaters/movie/name", h.getTheatersAndMovieScheduleByMovieName)
 	r.GET("/theater/details/:id", h.getScreensAndMovieScedulesByTheaterID)
 	r.GET("/theater/showtime/:id", h.listShowTimeByTheaterID)
 	r.GET("/theaters/:theater_id/movies/:movie_id/showtimes", h.listShowTimeByTheaterIDandMovieID)
@@ -299,7 +299,7 @@ func (h *Handler) getTheatersByName(ctx *gin.Context) {
 	h.responseWithData(ctx, http.StatusOK, "get theaters by name successfully", theaters)
 }
 
-func (h *Handler) getTheatersByMovieName(ctx *gin.Context) {
+func (h *Handler) getTheatersAndMovieScheduleByMovieName(ctx *gin.Context) {
 	movieName := ctx.Query("movie_name")
 	theaters, err := h.svc.GetTheatersAndMovieScheduleByMovieName(ctx, movieName)
 	if err != nil {
