@@ -74,11 +74,12 @@ type Theater struct {
 }
 
 type TheaterScreen struct {
-	ID           uint `json:"id"`
-	TheaterID    int  `json:"theater_id"`
-	ScreenNumber int  `json:"screen_number"`
-	SeatCapacity int  `json:"seat_capacity"`
-	ScreenTypeID int  `json:"screen_type_id"`
+	ID           uint       `json:"id"`
+	TheaterID    int        `json:"theater_id"`
+	ScreenNumber int        `json:"screen_number"`
+	SeatCapacity int        `json:"seat_capacity"`
+	ScreenTypeID int        `json:"screen_type_id"`
+	ScreenType   ScreenType `json:"ScreenType"`
 }
 
 type Showtime struct {
@@ -87,4 +88,75 @@ type Showtime struct {
 	ScreenID int       `json:"screen_id"`
 	ShowDate time.Time `json:"show_date"`
 	ShowTime time.Time `json:"show_time"`
+}
+
+type TheaterWithTypeResponse struct {
+	ID              int                 `json:"id"`
+	Name            string              `json:"name"`
+	Place           string              `json:"place"`
+	City            string              `json:"city"`
+	District        string              `json:"district"`
+	State           string              `json:"state"`
+	OwnerID         int                 `json:"owner_id"`
+	NumberOfScreens int                 `json:"number_of_screens"`
+	TheaterType     TheaterTypeResponse `json:"TheaterType"`
+}
+
+type TheaterTypeResponse struct {
+	ID              int    `json:"id"`
+	TheaterTypeName string `json:"theater_type_name"`
+}
+
+type TheatersAndMovieScheduleResponse struct {
+	ID         int      `json:"id"`
+	MovieID    int      `json:"movie_id"`
+	TheaterID  int      `json:"theater_id"`
+	ShowtimeID int      `json:"showtime_id"`
+	Movie      Movie    `json:"Movie"`
+	Theater    Theater  `json:"Theater"`
+	Showtime   Showtime `json:"Showtime"`
+}
+
+type TheaterResponse struct {
+	ID              int             `json:"id"`
+	Name            string          `json:"name"`
+	Place           string          `json:"place"`
+	City            string          `json:"city"`
+	District        string          `json:"district"`
+	State           string          `json:"state"`
+	NumberOfScreens int             `json:"number_of_screens"`
+	TheaterType     TheaterType     `json:"TheaterType"`
+	MovieSchedules  []MovieSchedule `json:"MovieSchedule"`
+	TheaterScreens  []TheaterScreen `json:"TheaterScreen"`
+}
+
+type MovieSchedule struct {
+	ID         int      `json:"id"`
+	MovieID    int      `json:"movie_id"`
+	TheaterID  int      `json:"theater_id"`
+	ShowtimeID int      `json:"showtime_id"`
+	Movie      Movie    `json:"Movie"`
+	Theater    Theater  `json:"Theater"`
+	Showtime   Showtime `json:"Showtime"`
+}
+
+type ShowtimeResponse struct {
+	ID            uint          `json:"id"`
+	MovieID       int           `json:"movie_id"`
+	ScreenID      int           `json:"screen_id"`
+	ShowDate      time.Time     `json:"show_date"`
+	ShowTime      time.Time     `json:"show_time"`
+	Movie         Movie         `json:"Movie"`
+	TheaterScreen TheaterScreen `json:"TheaterScreen"`
+}
+
+type ListShowTimeResponse struct {
+	Theater          Theater            `json:"Theater"`
+	ShowtimeResponse []ShowtimeResponse `json:"ShowtimeResponse"`
+}
+
+type ListShowTimeByTheaterAndMovie struct {
+	Movie            Movie              `json:"Movie"`
+	Theater          Theater            `json:"Theater"`
+	ShowtimeResponse []ShowtimeResponse `json:"ShowtimeResponse"`
 }

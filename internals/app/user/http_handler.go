@@ -33,6 +33,7 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.GET("/movie/name", h.getMovieByName)
 	r.GET("/movie/genre", h.getMoviesByGenre)
 	r.GET("/movie/language", h.getMoviesByLanguage)
+	r.GET("/movie/name/language", h.getMovieByNameAndLanguage)
 
 	r.GET("/theaters", h.listAllTheaters)
 	r.GET("/theater/:id", h.getTheaterByID)
@@ -234,6 +235,20 @@ func (h *Handler) getMoviesByLanguage(ctx *gin.Context) {
 	h.responseWithData(ctx, http.StatusOK, "get movies by language successfully", movies)
 }
 
+func (h *Handler) getMovieByNameAndLanguage(ctx *gin.Context) {
+	name := ctx.Query("name")
+	language := ctx.Query("language")
+
+	movie, err := h.svc.GetMovieByNameAndLanguage(ctx, name, language)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "get movie by name and language successfully", movie)
+}
+
 // Theaters
 func (h *Handler) listAllTheaters(ctx *gin.Context) {
 	theaters, err := h.svc.ListAllTheaters(ctx)
@@ -286,7 +301,7 @@ func (h *Handler) getTheatersByName(ctx *gin.Context) {
 
 func (h *Handler) getTheatersByMovieName(ctx *gin.Context) {
 	movieName := ctx.Query("movie_name")
-	theaters, err := h.svc.GetTheatersByMovieName(ctx, movieName)
+	theaters, err := h.svc.GetTheatersAndMovieScheduleByMovieName(ctx, movieName)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
