@@ -450,18 +450,19 @@ func (s *service) GetScreensAndMovieSchedulesByTheaterID(ctx context.Context, id
 	if err != nil {
 		return nil, err
 	}
-	theater := Theater{
-		ID:              uint(id),
+	theater := TheaterWithTypeResponse{
+		ID:              id,
 		Name:            response.Theater.Name,
 		Place:           response.Theater.Place,
 		City:            response.Theater.City,
 		District:        response.Theater.District,
 		State:           response.Theater.State,
+		OwnerID:         id,
 		NumberOfScreens: int(response.Theater.NumberOfScreens),
-	}
-	theaterType := TheaterType{
-		ID:              int(response.TheaterType.Id),
-		TheaterTypeName: response.TheaterType.TheaterTypeName,
+		TheaterType: TheaterTypeResponse{
+			ID:              int(response.Theater.TheaterTypeId),
+			TheaterTypeName: response.Theater.TheaterType.TheaterTypeName,
+		},
 	}
 	var movieSchedules []MovieSchedule
 	for _, resSchedule := range response.MovieSchedule {
@@ -502,6 +503,17 @@ func (s *service) GetScreensAndMovieSchedulesByTheaterID(ctx context.Context, id
 				ID:             int(resScreen.ScreenType.Id),
 				ScreenTypeName: resScreen.ScreenType.ScreenTypeName,
 			},
+			Theater: Theater{
+				ID:              uint(resScreen.Theater.TheaterId),
+				Name:            resScreen.Theater.Name,
+				Place:           resScreen.Theater.Place,
+				City:            resScreen.Theater.City,
+				District:        resScreen.Theater.District,
+				State:           resScreen.Theater.State,
+				OwnerID:         uint(resScreen.Theater.OwnerId),
+				NumberOfScreens: int(resScreen.Theater.NumberOfScreens),
+				TheaterTypeID:   int(resScreen.Theater.TheaterTypeId),
+			},
 		}
 		theaterScreens = append(theaterScreens, theaterScreen)
 	}
@@ -513,7 +525,7 @@ func (s *service) GetScreensAndMovieSchedulesByTheaterID(ctx context.Context, id
 		District:        theater.District,
 		State:           theater.State,
 		NumberOfScreens: theater.NumberOfScreens,
-		TheaterType:     theaterType,
+		TheaterType:     theater.TheaterType,
 		MovieSchedules:  movieSchedules,
 		TheaterScreens:  theaterScreens,
 	}, nil

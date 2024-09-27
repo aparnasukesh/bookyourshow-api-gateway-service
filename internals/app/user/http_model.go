@@ -80,6 +80,7 @@ type TheaterScreen struct {
 	SeatCapacity int        `json:"seat_capacity"`
 	ScreenTypeID int        `json:"screen_type_id"`
 	ScreenType   ScreenType `json:"ScreenType"`
+	Theater      Theater    `json:"Theater"`
 }
 
 type Showtime struct {
@@ -118,16 +119,16 @@ type TheatersAndMovieScheduleResponse struct {
 }
 
 type TheaterResponse struct {
-	ID              int             `json:"id"`
-	Name            string          `json:"name"`
-	Place           string          `json:"place"`
-	City            string          `json:"city"`
-	District        string          `json:"district"`
-	State           string          `json:"state"`
-	NumberOfScreens int             `json:"number_of_screens"`
-	TheaterType     TheaterType     `json:"TheaterType"`
-	MovieSchedules  []MovieSchedule `json:"MovieSchedule"`
-	TheaterScreens  []TheaterScreen `json:"TheaterScreen"`
+	ID              int                 `json:"id"`
+	Name            string              `json:"name"`
+	Place           string              `json:"place"`
+	City            string              `json:"city"`
+	District        string              `json:"district"`
+	State           string              `json:"state"`
+	NumberOfScreens int                 `json:"number_of_screens"`
+	TheaterType     TheaterTypeResponse `json:"TheaterType"`
+	MovieSchedules  []MovieSchedule     `json:"MovieSchedule"`
+	TheaterScreens  []TheaterScreen     `json:"TheaterScreen"`
 }
 
 type MovieSchedule struct {
