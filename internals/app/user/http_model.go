@@ -142,17 +142,18 @@ type MovieSchedule struct {
 }
 
 type ShowtimeResponse struct {
-	ID            uint          `json:"id"`
-	MovieID       int           `json:"movie_id"`
-	ScreenID      int           `json:"screen_id"`
-	ShowDate      time.Time     `json:"show_date"`
-	ShowTime      time.Time     `json:"show_time"`
-	Movie         Movie         `json:"Movie"`
-	TheaterScreen TheaterScreen `json:"TheaterScreen"`
+	ID               uint             `json:"id"`
+	MovieID          int              `json:"movie_id"`
+	ScreenID         int              `json:"screen_id"`
+	ShowDate         time.Time        `json:"show_date"`
+	ShowTime         time.Time        `json:"show_time"`
+	Movie            Movie            `json:"Movie"`
+	TheaterScreenRes TheaterScreenRes `json:"TheaterScreen"`
 }
 
 type ListShowTimeResponse struct {
 	Theater          Theater            `json:"Theater"`
+	TheaterType      TheaterType        `json:"theater_type"`
 	ShowtimeResponse []ShowtimeResponse `json:"ShowtimeResponse"`
 }
 
@@ -160,4 +161,12 @@ type ListShowTimeByTheaterAndMovie struct {
 	Movie            Movie              `json:"Movie"`
 	Theater          Theater            `json:"Theater"`
 	ShowtimeResponse []ShowtimeResponse `json:"ShowtimeResponse"`
+}
+
+type TheaterScreenRes struct {
+	ID           uint `json:"id"`
+	TheaterID    int  `json:"theater_id"`
+	ScreenNumber int  `json:"screen_number"`
+	SeatCapacity int  `json:"seat_capacity"`
+	ScreenTypeID int  `json:"screen_type_id"`
 }

@@ -549,6 +549,10 @@ func (s *service) ListShowTimeByTheaterID(ctx context.Context, id int) (*ListSho
 		NumberOfScreens: int(response.Theater.NumberOfScreens),
 		TheaterTypeID:   int(response.Theater.TheaterTypeId),
 	}
+	theaterType := TheaterType{
+		ID:              int(response.Theater.TheaterTypeId),
+		TheaterTypeName: response.Theater.TheaterType.TheaterTypeName,
+	}
 	showTimeResponse := []ShowtimeResponse{}
 
 	for _, res := range response.ShowTime {
@@ -567,7 +571,7 @@ func (s *service) ListShowTimeByTheaterID(ctx context.Context, id int) (*ListSho
 				Rating:      float64(res.Movie.Rating),
 				Language:    res.Movie.Language,
 			},
-			TheaterScreen: TheaterScreen{
+			TheaterScreenRes: TheaterScreenRes{
 				ID:           uint(res.TheaterScreen.ID),
 				TheaterID:    int(res.TheaterScreen.TheaterID),
 				ScreenNumber: int(res.TheaterScreen.ScreenNumber),
@@ -579,6 +583,7 @@ func (s *service) ListShowTimeByTheaterID(ctx context.Context, id int) (*ListSho
 	}
 	return &ListShowTimeResponse{
 		Theater:          theater,
+		TheaterType:      theaterType,
 		ShowtimeResponse: showTimeResponse,
 	}, nil
 }
@@ -620,7 +625,7 @@ func (s *service) ListShowTimeByTheaterIDandMovieID(ctx context.Context, theater
 			ScreenID: int(res.ScreenId),
 			ShowDate: res.ShowDate.AsTime(),
 			ShowTime: res.ShowTime.AsTime(),
-			TheaterScreen: TheaterScreen{
+			TheaterScreenRes: TheaterScreenRes{
 				ID:           uint(res.TheaterScreen.ID),
 				TheaterID:    int(res.TheaterScreen.TheaterID),
 				ScreenNumber: int(res.TheaterScreen.ScreenNumber),
