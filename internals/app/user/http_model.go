@@ -158,9 +158,9 @@ type ListShowTimeResponse struct {
 }
 
 type ListShowTimeByTheaterAndMovie struct {
-	Movie            Movie              `json:"Movie"`
-	Theater          Theater            `json:"Theater"`
-	ShowtimeResponse []ShowtimeResponse `json:"ShowtimeResponse"`
+	Movie                        Movie                          `json:"Movie"`
+	Theater                      Theater                        `json:"Theater"`
+	ShowtimeResponseWithoutMovie []ShowtimeResponseWithoutMovie `json:"ShowtimeResponse"`
 }
 
 type TheaterScreenRes struct {
@@ -169,4 +169,30 @@ type TheaterScreenRes struct {
 	ScreenNumber int  `json:"screen_number"`
 	SeatCapacity int  `json:"seat_capacity"`
 	ScreenTypeID int  `json:"screen_type_id"`
+}
+
+type ShowtimeResponseWithoutMovie struct {
+	ID               uint             `json:"id"`
+	MovieID          int              `json:"movie_id"`
+	ScreenID         int              `json:"screen_id"`
+	ShowDate         time.Time        `json:"show_date"`
+	ShowTime         time.Time        `json:"show_time"`
+	TheaterScreenRes TheaterScreenRes `json:"TheaterScreenRes"`
+}
+
+type SeatsByScreenIDRes struct {
+	ID                int              `json:"id"`
+	ScreenID          int              `json:"screen_id"`
+	SeatNumber        string           `json:"seat_number"`
+	Row               string           `json:"row"`
+	Column            int              `json:"column"`
+	SeatCategoryID    int              `json:"seat_category_id"`
+	SeatCategoryPrice float64          `json:"seat_category_price"`
+	TheaterScreenRes  TheaterScreenRes `json:"TheaterScreen"`
+	SeatCategory      SeatCategory     `gorm:"foreignKey:SeatCategoryID"`
+}
+
+type ListShowtimesByDateRes struct {
+	Theater  TheaterWithTypeResponse `json:"theater_with_type_response"`
+	Showtime ShowtimeResponse        `json:"show_time_response"`
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/aparnasukesh/api-gateway/pkg/common"
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,10 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.GET("/theater/details/:id", h.getScreensAndMovieScedulesByTheaterID)
 	r.GET("/theater/showtime/:id", h.listShowTimeByTheaterID)
 	r.GET("/theaters/:theater_id/movies/:movie_id/showtimes", h.listShowTimeByTheaterIDandMovieID)
+	r.GET("/theater/movie/showdate/showtimes/:movie_id", h.listShowtimeByMovieIdAndShowDate)
+
+	r.GET("/theater/screen/seats/:screen_id", h.listSeatsbyScreenID)
+	r.GET("/theater/screen/seat/:seat_id", h.getSeatBySeatID)
 
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
 	auth.GET("/profile", h.getProfile)
@@ -366,4 +371,58 @@ func (h *Handler) listShowTimeByTheaterIDandMovieID(ctx *gin.Context) {
 		return
 	}
 	h.responseWithData(ctx, http.StatusOK, "list showtimes by theater ID and movie ID successfully", showtimes)
+}
+
+func (h *Handler) listSeatsbyScreenID(ctx *gin.Context) {
+	idstr := ctx.Param("screen_id")
+	screenId, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	seats, err := h.svc.ListSeatsbyScreenID(ctx, screenId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list seats by screen id successfully", seats)
+
+}
+
+func (h *Handler) getSeatBySeatID(ctx *gin.Context) {
+	idstr := ctx.Param("seat_id")
+	seatId, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	seat, err := h.svc.GetSeatBySeatID(ctx, seatId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list seats by seat id successfully", seat)
+}
+
+func (h *Handler) listShowtimeByMovieIdAndShowDate(ctx *gin.Context) {
+	idstr := ctx.Param("movie_id")
+	movieId, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	showDateStr := ctx.DefaultQuery("show_date", "")
+	showDate, _ := time.Parse(time.RFC3339, showDateStr)
+	showtimes, err := h.svc.ListShowtimeByMovieIdAndShowDate(ctx, showDate, movieId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list showtimes by movie_id and show date successfully", showtimes)
 }

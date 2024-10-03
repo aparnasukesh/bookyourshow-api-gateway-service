@@ -3,10 +3,12 @@ package user
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/aparnasukesh/inter-communication/auth"
 	"github.com/aparnasukesh/inter-communication/movie_booking"
 	"github.com/aparnasukesh/inter-communication/user_admin"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Service interface {
@@ -34,6 +36,10 @@ type Service interface {
 	GetScreensAndMovieSchedulesByTheaterID(ctx context.Context, id int) (*TheaterResponse, error)
 	ListShowTimeByTheaterID(ctx context.Context, id int) (*ListShowTimeResponse, error)
 	ListShowTimeByTheaterIDandMovieID(ctx context.Context, theaterId int, movieId int) (*ListShowTimeByTheaterAndMovie, error)
+	ListShowtimeByMovieIdAndShowDate(ctx context.Context, showDate time.Time, movieId int) ([]ListShowtimesByDateRes, error)
+	// Seat
+	ListSeatsbyScreenID(ctx context.Context, screenId int) ([]SeatsByScreenIDRes, error)
+	GetSeatBySeatID(ctx context.Context, seatId int) (*SeatsByScreenIDRes, error)
 }
 
 type service struct {
@@ -616,10 +622,10 @@ func (s *service) ListShowTimeByTheaterIDandMovieID(ctx context.Context, theater
 		NumberOfScreens: int(response.Theater.NumberOfScreens),
 		TheaterTypeID:   int(response.Theater.TheaterTypeId),
 	}
-	showTimeResponse := []ShowtimeResponse{}
+	showTimeResponse := []ShowtimeResponseWithoutMovie{}
 
 	for _, res := range response.ShowTime {
-		showtime := ShowtimeResponse{
+		showtime := ShowtimeResponseWithoutMovie{
 			ID:       uint(res.Id),
 			MovieID:  int(res.MovieId),
 			ScreenID: int(res.ScreenId),
@@ -636,8 +642,126 @@ func (s *service) ListShowTimeByTheaterIDandMovieID(ctx context.Context, theater
 		showTimeResponse = append(showTimeResponse, showtime)
 	}
 	return &ListShowTimeByTheaterAndMovie{
-		Movie:            movie,
-		Theater:          theater,
-		ShowtimeResponse: showTimeResponse,
+		Movie:                        movie,
+		Theater:                      theater,
+		ShowtimeResponseWithoutMovie: showTimeResponse,
 	}, nil
+}
+
+func (s *service) GetSeatBySeatID(ctx context.Context, seatId int) (*SeatsByScreenIDRes, error) {
+	response, err := s.theaterClient.GetSeatByID(ctx, &movie_booking.GetSeatByIdRequest{
+		Id: int32(seatId),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &SeatsByScreenIDRes{
+		ID:                seatId,
+		ScreenID:          int(response.Seat.ScreenId),
+		SeatNumber:        response.Seat.SeatNumber,
+		Row:               response.Seat.Row,
+		Column:            int(response.Seat.Column),
+		SeatCategoryID:    int(response.Seat.SeatCategoryId),
+		SeatCategoryPrice: response.Seat.SeatCategoryPrice,
+		TheaterScreenRes: TheaterScreenRes{
+			ID:           uint(response.Seat.TheaterScreen.ID),
+			TheaterID:    int(response.Seat.TheaterScreen.TheaterID),
+			ScreenNumber: int(response.Seat.TheaterScreen.ScreenNumber),
+			SeatCapacity: int(response.Seat.TheaterScreen.SeatCapacity),
+			ScreenTypeID: int(response.Seat.TheaterScreen.ScreenTypeID),
+		},
+		SeatCategory: SeatCategory{
+			ID:               int(response.Seat.SeatCategoryId),
+			SeatCategoryName: response.Seat.SeatCategory.SeatCategoryName,
+		},
+	}, nil
+}
+
+func (s *service) ListSeatsbyScreenID(ctx context.Context, screenId int) ([]SeatsByScreenIDRes, error) {
+	response, err := s.theaterClient.GetSeatsByScreenID(ctx, &movie_booking.GetSeatsByScreenIDRequest{
+		ScreenId: int32(screenId),
+	})
+	if err != nil {
+		return nil, err
+	}
+	seats := []SeatsByScreenIDRes{}
+
+	for _, res := range response.Seats {
+		seat := &SeatsByScreenIDRes{
+			ID:                int(res.Id),
+			ScreenID:          int(res.ScreenId),
+			SeatNumber:        res.SeatNumber,
+			Row:               res.Row,
+			Column:            int(res.Column),
+			SeatCategoryID:    int(res.SeatCategoryId),
+			SeatCategoryPrice: res.SeatCategoryPrice,
+			TheaterScreenRes: TheaterScreenRes{
+				ID:           uint(res.TheaterScreen.ID),
+				TheaterID:    int(res.TheaterScreen.TheaterID),
+				ScreenNumber: int(res.TheaterScreen.ScreenNumber),
+				SeatCapacity: int(res.TheaterScreen.SeatCapacity),
+				ScreenTypeID: int(res.TheaterScreen.ScreenTypeID),
+			},
+			SeatCategory: SeatCategory{
+				ID:               int(res.SeatCategory.Id),
+				SeatCategoryName: res.SeatCategory.SeatCategoryName,
+			},
+		}
+		seats = append(seats, *seat)
+	}
+	return seats, nil
+}
+
+func (s *service) ListShowtimeByMovieIdAndShowDate(ctx context.Context, showDate time.Time, movieId int) ([]ListShowtimesByDateRes, error) {
+	response, err := s.theaterClient.ListShowtimesByShowDateAndMovieID(ctx, &movie_booking.ListShowtimesByShowDateAndMovieIdRequest{
+		ShowDate: timestamppb.New(showDate),
+		MovieId:  int32(movieId),
+	})
+	if err != nil {
+		return nil, err
+	}
+	showtimes := []ListShowtimesByDateRes{}
+	for _, res := range response.Showtimes {
+		showtime := ListShowtimesByDateRes{
+			Theater: TheaterWithTypeResponse{
+				ID:              int(res.TheaterScreen.Theater.TheaterId),
+				Name:            res.TheaterScreen.Theater.Name,
+				Place:           res.TheaterScreen.Theater.Place,
+				City:            res.TheaterScreen.Theater.City,
+				District:        res.TheaterScreen.Theater.District,
+				State:           res.TheaterScreen.Theater.State,
+				OwnerID:         int(res.TheaterScreen.Theater.OwnerId),
+				NumberOfScreens: int(res.TheaterScreen.Theater.NumberOfScreens),
+				TheaterType: TheaterTypeResponse{
+					ID:              int(res.TheaterScreen.Theater.TheaterType.Id),
+					TheaterTypeName: res.TheaterScreen.Theater.TheaterType.TheaterTypeName,
+				},
+			},
+			Showtime: ShowtimeResponse{
+				ID:       uint(res.Id),
+				MovieID:  int(res.MovieId),
+				ScreenID: int(res.ScreenId),
+				ShowDate: res.ShowDate.AsTime(),
+				ShowTime: res.ShowTime.AsTime(),
+				Movie: Movie{
+					Title:       res.Movie.Title,
+					Description: res.Movie.Description,
+					Duration:    int(res.Movie.Duration),
+					Genre:       res.Movie.Genre,
+					ReleaseDate: res.Movie.ReleaseDate,
+					Rating:      float64(res.Movie.Rating),
+					Language:    res.Movie.Language,
+				},
+				TheaterScreenRes: TheaterScreenRes{
+					ID:           uint(res.TheaterScreen.ID),
+					TheaterID:    int(res.TheaterScreen.TheaterID),
+					ScreenNumber: int(res.TheaterScreen.ScreenNumber),
+					SeatCapacity: int(res.TheaterScreen.SeatCapacity),
+					ScreenTypeID: int(res.TheaterScreen.ScreenTypeID),
+				},
+			},
+		}
+		showtimes = append(showtimes, showtime)
+	}
+	return showtimes, nil
 }
