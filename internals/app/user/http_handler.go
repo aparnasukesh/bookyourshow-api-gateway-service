@@ -52,7 +52,32 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
 	auth.GET("/profile", h.getProfile)
 	auth.PUT("/profile/:id", h.updateUserProfile)
+	auth.POST("/booking", h.createBooking)
 
+}
+
+// Booking
+func (h *Handler) createBooking(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
+	bookingReq := &CreateBookingRequest{}
+	if err := ctx.ShouldBindJSON(&bookingReq); err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	bookingReq.UserID = userId
+	booking, err := h.svc.CreateBooking(ctx, *bookingReq)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "booking succesfull", booking)
 }
 
 func (h *Handler) register(ctx *gin.Context) {

@@ -5,10 +5,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-func NewMovieBookingGrpcClint(port string) (pb.MovieServiceClient, pb.TheatreServiceClient, error) {
+func NewMovieBookingGrpcClint(port string) (pb.MovieServiceClient, pb.TheatreServiceClient, pb.BookingServiceClient, error) {
 	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return pb.NewMovieServiceClient(conn), pb.NewTheatreServiceClient(conn), nil
+	return pb.NewMovieServiceClient(conn), pb.NewTheatreServiceClient(conn), pb.NewBookingServiceClient(conn), nil
 }

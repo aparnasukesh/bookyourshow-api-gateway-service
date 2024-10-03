@@ -196,3 +196,27 @@ type ListShowtimesByDateRes struct {
 	Theater  TheaterWithTypeResponse `json:"theater_with_type_response"`
 	Showtime ShowtimeResponse        `json:"show_time_response"`
 }
+
+// Booking
+type Booking struct {
+	BookingID     uint          `json:"booking_id"`
+	UserID        uint          `json:"user_id"`
+	ShowtimeID    uint          `json:"showtime_id"`
+	BookingDate   time.Time     `json:"booking_date"`
+	TotalAmount   float64       `json:"total_amount"`
+	PaymentStatus string        `json:"payment_status"`
+	BookingSeats  []BookingSeat `json:"booking_seats"`
+}
+
+type BookingSeat struct {
+	BookingID uint `json:"booking_id"`
+	SeatID    uint `json:"seat_id"`
+}
+
+type CreateBookingRequest struct {
+	UserID      int      `json:"user_id"`
+	ShowtimeID  int      `json:"showtime_id"`
+	ScreenID    uint     `json:"screen_id"`
+	SeatIDs     []uint32 `json:"seat_ids"`
+	TotalAmount float64  `json:"total_amount"`
+}

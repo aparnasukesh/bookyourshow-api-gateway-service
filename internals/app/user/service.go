@@ -40,6 +40,8 @@ type Service interface {
 	// Seat
 	ListSeatsbyScreenID(ctx context.Context, screenId int) ([]SeatsByScreenIDRes, error)
 	GetSeatBySeatID(ctx context.Context, seatId int) (*SeatsByScreenIDRes, error)
+	// Booking
+	CreateBooking(ctx context.Context, bookingReq CreateBookingRequest) (*Booking, error)
 }
 
 type service struct {
@@ -47,15 +49,48 @@ type service struct {
 	auth          auth.JWT_TokenServiceClient
 	movieBooking  movie_booking.MovieServiceClient
 	theaterClient movie_booking.TheatreServiceClient
+	bookingClient movie_booking.BookingServiceClient
 }
 
-func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient) Service {
+func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient, bookingClient movie_booking.BookingServiceClient) Service {
 	return &service{
 		userAdmin:     pb,
 		auth:          auth,
 		movieBooking:  movieBooking,
 		theaterClient: theaterClient,
+		bookingClient: bookingClient,
 	}
+}
+
+// Booking
+func (s *service) CreateBooking(ctx context.Context, bookingReq CreateBookingRequest) (*Booking, error) {
+	response, err := s.bookingClient.CreateBooking(ctx, &movie_booking.CreateBookingRequest{
+		UserId:        uint32(bookingReq.UserID),
+		ShowtimeId:    uint32(bookingReq.ShowtimeID),
+		TotalAmount:   bookingReq.TotalAmount,
+		PaymentStatus: "",
+		SeatIds:       bookingReq.SeatIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+	bookingSeats := []BookingSeat{}
+	for _, res := range response.Booking.BookingSeats {
+		seat := BookingSeat{
+			BookingID: uint(res.BookingId),
+			SeatID:    uint(res.SeatId),
+		}
+		bookingSeats = append(bookingSeats, seat)
+	}
+	return &Booking{
+		BookingID:     uint(response.Booking.BookingId),
+		UserID:        uint(response.Booking.UserId),
+		ShowtimeID:    uint(response.Booking.ShowtimeId),
+		BookingDate:   response.Booking.BookingDate.AsTime(),
+		TotalAmount:   response.Booking.TotalAmount,
+		PaymentStatus: response.Booking.PaymentStatus,
+		BookingSeats:  bookingSeats,
+	}, nil
 }
 
 func (s *service) Register(ctx context.Context, signUpData *User) error {
