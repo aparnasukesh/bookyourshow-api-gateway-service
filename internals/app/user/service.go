@@ -42,6 +42,8 @@ type Service interface {
 	GetSeatBySeatID(ctx context.Context, seatId int) (*SeatsByScreenIDRes, error)
 	// Booking
 	CreateBooking(ctx context.Context, bookingReq CreateBookingRequest) (*Booking, error)
+	GetBookingByID(ctx context.Context, id int) (*Booking, error)
+	ListBookingsByUser(ctx context.Context, userId int) ([]Booking, error)
 }
 
 type service struct {
@@ -63,6 +65,61 @@ func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClien
 }
 
 // Booking
+func (s *service) ListBookingsByUser(ctx context.Context, userId int) ([]Booking, error) {
+	response, err := s.bookingClient.ListBookingsByUser(ctx, &movie_booking.ListBookingsByUserRequest{
+		UserId: uint32(userId),
+	})
+	if err != nil {
+		return nil, err
+	}
+	bookings := []Booking{}
+	for _, res := range response.Bookings {
+		seats := make([]BookingSeat, len(res.BookingSeats))
+		for i, seat := range res.BookingSeats {
+			seats[i] = BookingSeat{
+				BookingID: uint(seat.BookingId),
+				SeatID:    uint(seat.SeatId),
+			}
+		}
+		booking := Booking{
+			BookingID:     uint(res.BookingId),
+			UserID:        uint(res.UserId),
+			ShowtimeID:    uint(res.ShowtimeId),
+			BookingDate:   res.BookingDate.AsTime(),
+			TotalAmount:   res.TotalAmount,
+			PaymentStatus: res.PaymentStatus,
+			BookingSeats:  seats,
+		}
+		bookings = append(bookings, booking)
+	}
+	return bookings, nil
+}
+
+func (s *service) GetBookingByID(ctx context.Context, id int) (*Booking, error) {
+	response, err := s.bookingClient.GetBookingByID(ctx, &movie_booking.GetBookingByIDRequest{
+		BookingId: uint32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	seats := make([]BookingSeat, len(response.Booking.BookingSeats))
+	for i, seat := range response.Booking.BookingSeats {
+		seats[i] = BookingSeat{
+			BookingID: uint(seat.BookingId),
+			SeatID:    uint(seat.SeatId),
+		}
+	}
+	return &Booking{
+		BookingID:     uint(response.Booking.BookingId),
+		UserID:        uint(response.Booking.UserId),
+		ShowtimeID:    uint(response.Booking.ShowtimeId),
+		BookingDate:   response.Booking.BookingDate.AsTime(),
+		TotalAmount:   response.Booking.TotalAmount,
+		PaymentStatus: response.Booking.PaymentStatus,
+		BookingSeats:  seats,
+	}, nil
+}
+
 func (s *service) CreateBooking(ctx context.Context, bookingReq CreateBookingRequest) (*Booking, error) {
 	response, err := s.bookingClient.CreateBooking(ctx, &movie_booking.CreateBookingRequest{
 		UserId:        uint32(bookingReq.UserID),

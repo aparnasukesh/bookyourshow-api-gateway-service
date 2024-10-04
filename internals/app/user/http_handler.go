@@ -52,11 +52,50 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
 	auth.GET("/profile", h.getProfile)
 	auth.PUT("/profile/:id", h.updateUserProfile)
+	//Booking
 	auth.POST("/booking", h.createBooking)
+	auth.GET("/booking/:id", h.getBookingByID)
+	auth.GET("/booking/user/:user_id", h.listBookingsByUser)
 
 }
 
 // Booking
+func (h *Handler) listBookingsByUser(ctx *gin.Context) {
+	idstr := ctx.Param("user_id")
+	userId, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	bookings, err := h.svc.ListBookingsByUser(ctx, userId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get booking details succesfull", bookings)
+
+}
+
+func (h *Handler) getBookingByID(ctx *gin.Context) {
+	idstr := ctx.Param("id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	bookings, err := h.svc.GetBookingByID(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "get booking details succesfull", bookings)
+
+}
+
 func (h *Handler) createBooking(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("Authorization")
 	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
