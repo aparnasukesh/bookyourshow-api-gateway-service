@@ -64,3 +64,33 @@ func (h *Handler) SuperAdminAuthMiddleware() gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+func (h *Handler) UserPaymentAuthorization() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		token, err := ctx.Cookie("UserAuthorization")
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"Success": false,
+				"Message": "Authorization failed",
+				"Error":   err.Error(),
+			})
+			ctx.Abort()
+			return
+		}
+		if token == "" {
+			h.responseWithError(ctx, http.StatusUnauthorized, fmt.Errorf("authorization header is missing"))
+			ctx.Abort()
+			return
+		}
+
+		err = h.svc.UserAuthentication(ctx, token)
+		if err != nil {
+			formattedError := ExtractErrorMessage(err)
+			h.responseWithError(ctx, http.StatusUnauthorized, errors.New(formattedError))
+			ctx.Abort()
+			return
+		}
+		ctx.Next()
+	}
+}

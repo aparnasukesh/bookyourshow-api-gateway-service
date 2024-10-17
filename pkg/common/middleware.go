@@ -6,4 +6,5 @@ type Middleware interface {
 	UserAuthMiddleware() gin.HandlerFunc
 	AdminAuthMiddleware() gin.HandlerFunc
 	SuperAdminAuthMiddleware() gin.HandlerFunc
+	UserPaymentAuthorization() gin.HandlerFunc
 }

@@ -28,7 +28,9 @@ func InitUserModule(cfg config.Config) (*user.Handler, error) {
 	}
 	movieBooking, theater, booking, err := grpcclient.NewMovieBookingGrpcClint(cfg.MovieBookingPort)
 
-	svc := user.NewService(pb, auth, movieBooking, theater, booking)
+	paymentClient, err := grpcclient.NewBookingPaymentServiceClient(cfg.PaymentPort)
+
+	svc := user.NewService(pb, auth, movieBooking, theater, booking, paymentClient)
 	userHandler := user.NewHttpHandler(svc, authHandler)
 	return userHandler, nil
 }

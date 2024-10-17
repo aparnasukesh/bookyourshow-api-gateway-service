@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"html/template"
 	"net/http"
 	"strconv"
 	"time"
@@ -56,6 +57,63 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.POST("/booking", h.createBooking)
 	auth.GET("/booking/:id", h.getBookingByID)
 	auth.GET("/booking/user/:user_id", h.listBookingsByUser)
+
+	paymentAuth := r.Use(h.authHandler.UserPaymentAuthorization())
+	paymentAuth.GET("/payment", h.paymentBookingRazorpay)
+
+}
+
+// Payment
+func (h *Handler) paymentBookingRazorpay(ctx *gin.Context) {
+	token, err := ctx.Cookie("UserAuthorization")
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"Success": false,
+			"Message": "Order failed",
+			"Error":   err.Error(),
+		})
+		return
+	}
+	idstr := ctx.Param("booking_id")
+	bookingId, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	userId, err := h.svc.GetUserIDFromToken(ctx, token)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	paymentDetails, err := h.svc.ProcessPayment(ctx, bookingId, userId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		return
+	}
+	temp, err := template.ParseFiles("./templates/app.html")
+	if err != nil {
+		ctx.JSON(400, gin.H{
+			"Error": err,
+		})
+		return
+	}
+	data := map[string]interface{}{
+		"userid":          paymentDetails.UserID,
+		"totalprice":      paymentDetails.Amount,
+		"transactionid":   paymentDetails.TransactionID,
+		"booking_TableId": paymentDetails.BookingID,
+	}
+
+	err = temp.Execute(ctx.Writer, data)
+	if err != nil {
+		ctx.JSON(400, gin.H{
+			"Error": err,
+		})
+	}
 
 }
 

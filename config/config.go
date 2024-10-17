@@ -11,10 +11,11 @@ type Config struct {
 	UserSvcPort      string `mapstructure:"UserSvcPort" validate:"required"`
 	AuthSvcPort      string `mapstructure:"AuthSvcPort" validate:"required"`
 	MovieBookingPort string `mapstructure:"MovieBookingPort" validate:"required"`
+	PaymentPort      string `mapstructure:"PaymentPort" validate:"required"`
 }
 
 var envs = []string{
-	"UserSvcPort", "AuthSvcPort", "MovieBookingPort",
+	"UserSvcPort", "AuthSvcPort", "MovieBookingPort", "PaymentPort",
 }
 
 func LoadConfig() (Config, error) {

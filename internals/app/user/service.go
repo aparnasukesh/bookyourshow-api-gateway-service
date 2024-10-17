@@ -7,6 +7,7 @@ import (
 
 	"github.com/aparnasukesh/inter-communication/auth"
 	"github.com/aparnasukesh/inter-communication/movie_booking"
+	"github.com/aparnasukesh/inter-communication/payment"
 	"github.com/aparnasukesh/inter-communication/user_admin"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -44,6 +45,8 @@ type Service interface {
 	CreateBooking(ctx context.Context, bookingReq CreateBookingRequest) (*Booking, error)
 	GetBookingByID(ctx context.Context, id int) (*Booking, error)
 	ListBookingsByUser(ctx context.Context, userId int) ([]Booking, error)
+	// Payment
+	ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error)
 }
 
 type service struct {
@@ -52,16 +55,40 @@ type service struct {
 	movieBooking  movie_booking.MovieServiceClient
 	theaterClient movie_booking.TheatreServiceClient
 	bookingClient movie_booking.BookingServiceClient
+	paymentClient payment.PaymentServiceClient
 }
 
-func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient, bookingClient movie_booking.BookingServiceClient) Service {
+func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient, bookingClient movie_booking.BookingServiceClient, paymentClient payment.PaymentServiceClient) Service {
 	return &service{
 		userAdmin:     pb,
 		auth:          auth,
 		movieBooking:  movieBooking,
 		theaterClient: theaterClient,
 		bookingClient: bookingClient,
+		paymentClient: paymentClient,
 	}
+}
+
+// Payment
+func (s *service) ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error) {
+	res, err := s.paymentClient.ProcessPayment(ctx, &payment.ProcessPaymentRequest{
+		BookingId:       int32(bookingId),
+		UserId:          int32(userId),
+		Amount:          0,
+		PaymentMethodId: 0,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &Transaction{
+		TransactionID:   uint(res.Transaction.TransactionID),
+		BookingID:       uint(res.Transaction.BookingID),
+		UserID:          uint(res.Transaction.UserID),
+		PaymentMethodID: uint(res.Transaction.PaymentMethodID),
+		TransactionDate: res.Transaction.TransactionDate,
+		Amount:          res.Transaction.Amount,
+		Status:          res.Transaction.Status,
+	}, nil
 }
 
 // Booking
