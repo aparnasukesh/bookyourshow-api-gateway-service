@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -46,7 +48,9 @@ type Service interface {
 	GetBookingByID(ctx context.Context, id int) (*Booking, error)
 	ListBookingsByUser(ctx context.Context, userId int) ([]Booking, error)
 	// Payment
+	GetTransactionStatus(ctx context.Context, id int) (*TransactionResponse, error)
 	ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error)
+	HandleRazorpayWebhook(ctx context.Context, payload []byte) error
 }
 
 type service struct {
@@ -69,25 +73,74 @@ func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClien
 	}
 }
 
+// -----------------------------------------------
+func (s *service) HandleRazorpayWebhook(ctx context.Context, payload []byte) error {
+	var webhookEvent RazorpayWebhookPayload
+
+	// Unmarshal the webhook payload
+	if err := json.Unmarshal(payload, &webhookEvent); err != nil {
+		return fmt.Errorf("error unmarshalling webhook payload: %v", err)
+	}
+	// Call the payment client with the prepared request
+	_, err := s.paymentClient.HandleRazorpayWebhook(ctx, &payment.HandleRazorpayWebhookRequest{
+		Event: "",
+		Payload: &payment.RazorpayWebhookPayload{
+			Data: &payment.RazorpayWebhookPayload_Data{
+				TransactionId:   int32(webhookEvent.Data.TransactionID),
+				BookingId:       int32(webhookEvent.Data.BookingID),
+				UserId:          int32(webhookEvent.Data.UserID),
+				PaymentMethodId: int32(webhookEvent.Data.PaymentMethodID),
+				TransactionDate: webhookEvent.Data.TransactionDate,
+				Amount:          webhookEvent.Data.Amount,
+				OrderId:         webhookEvent.Data.OrderID,
+				Status:          webhookEvent.Data.Status,
+			},
+			Message: webhookEvent.Message,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error sending webhook to payment client: %v", err)
+	}
+
+	return nil
+}
+
 // Payment
 func (s *service) ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error) {
 	res, err := s.paymentClient.ProcessPayment(ctx, &payment.ProcessPaymentRequest{
 		BookingId:       int32(bookingId),
 		UserId:          int32(userId),
 		Amount:          0,
-		PaymentMethodId: 0,
+		PaymentMethodId: 1,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return &Transaction{
-		TransactionID:   uint(res.Transaction.TransactionID),
-		BookingID:       uint(res.Transaction.BookingID),
-		UserID:          uint(res.Transaction.UserID),
-		PaymentMethodID: uint(res.Transaction.PaymentMethodID),
+		TransactionID:   uint(res.Transaction.TransactionId),
+		BookingID:       uint(res.Transaction.BookingId),
+		UserID:          uint(res.Transaction.UserId),
+		PaymentMethodID: uint(res.Transaction.PaymentMethodId),
 		TransactionDate: res.Transaction.TransactionDate,
 		Amount:          res.Transaction.Amount,
+		OrderID:         res.Transaction.OrderId,
 		Status:          res.Transaction.Status,
+	}, nil
+}
+
+func (s *service) GetTransactionStatus(ctx context.Context, id int) (*TransactionResponse, error) {
+	res, err := s.paymentClient.GetTransactionStatus(ctx, &payment.GetTransactionStatusRequest{
+		TransactionId: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &TransactionResponse{
+		TransactionID:   uint(res.TransactionId),
+		PaymentMethodID: uint(res.PaymentMethodId),
+		TransactionDate: res.TransactionDate,
+		Amount:          res.Amount,
+		Status:          res.Status,
 	}, nil
 }
 

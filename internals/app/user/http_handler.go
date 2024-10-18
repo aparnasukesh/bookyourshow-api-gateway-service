@@ -2,7 +2,8 @@ package user
 
 import (
 	"errors"
-	"html/template"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -57,64 +58,71 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.POST("/booking", h.createBooking)
 	auth.GET("/booking/:id", h.getBookingByID)
 	auth.GET("/booking/user/:user_id", h.listBookingsByUser)
-
-	paymentAuth := r.Use(h.authHandler.UserPaymentAuthorization())
-	paymentAuth.GET("/payment", h.paymentBookingRazorpay)
-
+	// Payment
+	auth.GET("/payment/status/:transaction_id", h.getTransactionStatus)
+	auth.POST("/payment/:booking_id", h.processPayment)
+	auth.POST("/webhook/razorpay", h.handleRazorpayWebhook)
 }
 
 // Payment
-func (h *Handler) paymentBookingRazorpay(ctx *gin.Context) {
-	token, err := ctx.Cookie("UserAuthorization")
+func (h *Handler) handleRazorpayWebhook(ctx *gin.Context) {
+	payload, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"Success": false,
-			"Message": "Order failed",
-			"Error":   err.Error(),
-		})
+		h.responseWithError(ctx, http.StatusBadRequest, errors.New("failed to read request body"))
 		return
 	}
-	idstr := ctx.Param("booking_id")
-	bookingId, err := strconv.Atoi(idstr)
+
+	// Call the service layer to handle the webhook
+	if err := h.svc.HandleRazorpayWebhook(ctx, payload); err != nil {
+		h.responseWithError(ctx, http.StatusInternalServerError, fmt.Errorf("failed to handle webhook: %v", err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Webhook processed successfully"})
+}
+
+// ------------------------------------------------------------------
+func (h *Handler) processPayment(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
+	bookingIdstr := ctx.Param("booking_id")
+	bookingId, err := strconv.Atoi(bookingIdstr)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
-	userId, err := h.svc.GetUserIDFromToken(ctx, token)
+	transaction, err := h.svc.ProcessPayment(ctx, bookingId, userId)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
 
-	paymentDetails, err := h.svc.ProcessPayment(ctx, bookingId, userId)
+	h.responseWithData(ctx, http.StatusOK, "payment processed successfully", transaction)
+}
+
+func (h *Handler) getTransactionStatus(ctx *gin.Context) {
+	idstr := ctx.Param("transaction_id")
+	id, err := strconv.Atoi(idstr)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
-		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
-	temp, err := template.ParseFiles("./templates/app.html")
+
+	status, err := h.svc.GetTransactionStatus(ctx, id)
 	if err != nil {
-		ctx.JSON(400, gin.H{
-			"Error": err,
-		})
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
-	data := map[string]interface{}{
-		"userid":          paymentDetails.UserID,
-		"totalprice":      paymentDetails.Amount,
-		"transactionid":   paymentDetails.TransactionID,
-		"booking_TableId": paymentDetails.BookingID,
-	}
 
-	err = temp.Execute(ctx.Writer, data)
-	if err != nil {
-		ctx.JSON(400, gin.H{
-			"Error": err,
-		})
-	}
-
+	h.responseWithData(ctx, http.StatusOK, "transaction status retrieved", status)
 }
 
 // Booking
