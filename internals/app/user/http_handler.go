@@ -72,7 +72,6 @@ func (h *Handler) handleRazorpayWebhook(ctx *gin.Context) {
 		return
 	}
 
-	// Call the service layer to handle the webhook
 	if err := h.svc.HandleRazorpayWebhook(ctx, payload); err != nil {
 		h.responseWithError(ctx, http.StatusInternalServerError, fmt.Errorf("failed to handle webhook: %v", err))
 		return
@@ -81,7 +80,6 @@ func (h *Handler) handleRazorpayWebhook(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Webhook processed successfully"})
 }
 
-// ------------------------------------------------------------------
 func (h *Handler) processPayment(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("Authorization")
 	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
@@ -103,7 +101,11 @@ func (h *Handler) processPayment(ctx *gin.Context) {
 		return
 	}
 
-	h.responseWithData(ctx, http.StatusOK, "payment processed successfully", transaction)
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":     "payment processed succesfully",
+		"transaction": transaction,
+		"redirect":    fmt.Sprintf("http://localhost:8080/gateway/user/webhook/razorpay/%d", transaction.TransactionID),
+	})
 }
 
 func (h *Handler) getTransactionStatus(ctx *gin.Context) {
@@ -161,7 +163,6 @@ func (h *Handler) getBookingByID(ctx *gin.Context) {
 	h.responseWithData(ctx, http.StatusOK, "get booking details succesfull", bookings)
 
 }
-
 func (h *Handler) createBooking(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("Authorization")
 	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
@@ -170,7 +171,7 @@ func (h *Handler) createBooking(ctx *gin.Context) {
 		return
 	}
 	bookingReq := &CreateBookingRequest{}
-	if err := ctx.ShouldBindJSON(&bookingReq); err != nil {
+	if err := ctx.ShouldBindJSON(bookingReq); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
@@ -182,7 +183,11 @@ func (h *Handler) createBooking(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	h.responseWithData(ctx, http.StatusOK, "booking succesfull", booking)
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":  "booking successful",
+		"booking":  booking,
+		"redirect": fmt.Sprintf("http://localhost:8080/gateway/user/payment/%d", booking.BookingID),
+	})
 }
 
 func (h *Handler) register(ctx *gin.Context) {

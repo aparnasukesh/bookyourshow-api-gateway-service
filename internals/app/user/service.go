@@ -73,15 +73,12 @@ func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClien
 	}
 }
 
-// -----------------------------------------------
 func (s *service) HandleRazorpayWebhook(ctx context.Context, payload []byte) error {
 	var webhookEvent RazorpayWebhookPayload
 
-	// Unmarshal the webhook payload
 	if err := json.Unmarshal(payload, &webhookEvent); err != nil {
 		return fmt.Errorf("error unmarshalling webhook payload: %v", err)
 	}
-	// Call the payment client with the prepared request
 	_, err := s.paymentClient.HandleRazorpayWebhook(ctx, &payment.HandleRazorpayWebhookRequest{
 		Event: "",
 		Payload: &payment.RazorpayWebhookPayload{
