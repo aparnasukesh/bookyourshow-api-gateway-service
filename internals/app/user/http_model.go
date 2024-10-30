@@ -253,7 +253,6 @@ type TransactionResponse struct {
 }
 
 type PaymentStatusRequest struct {
-	BookingID         int    `json:"booking_id"`
 	OrderID           string `json:"order_id"`
 	RazorpayPaymentID string `json:"payment_id"`
 }

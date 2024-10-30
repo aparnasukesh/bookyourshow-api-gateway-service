@@ -65,20 +65,39 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 }
 
 func (h *Handler) paymentSuccess(ctx *gin.Context) {
-	orderId, _ := ctx.Params.Get("order_id")
-	paymentId, _ := ctx.Params.Get("payment_id")
-	bookingIdstr, _ := ctx.Params.Get("booking_id")
-	bookingId, err := strconv.Atoi(bookingIdstr)
+	orderId := ctx.Query("order_id")
+	paymentId := ctx.Query("payment_id")
+
+	data := PaymentStatusRequest{
+		OrderID:           orderId,
+		RazorpayPaymentID: paymentId,
+	}
+	fmt.Println("===================", orderId, paymentId)
+	err := h.svc.PaymentSuccess(ctx, data)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
+	h.response(ctx, http.StatusOK, "payment successfull")
 
 }
 
 func (h *Handler) paymentFailure(ctx *gin.Context) {
+	orderId, _ := ctx.Params.Get("order_id")
+	paymentId, _ := ctx.Params.Get("payment_id")
 
+	data := PaymentStatusRequest{
+		OrderID:           orderId,
+		RazorpayPaymentID: paymentId,
+	}
+	err := h.svc.PaymentFailure(ctx, data)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "payment failed")
 }
 
 func (h *Handler) processPayment(ctx *gin.Context) {

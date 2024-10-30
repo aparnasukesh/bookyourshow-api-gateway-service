@@ -48,6 +48,8 @@ type Service interface {
 	// Payment
 	GetTransactionStatus(ctx context.Context, id int) (*TransactionResponse, error)
 	ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error)
+	PaymentSuccess(ctx context.Context, req PaymentStatusRequest) error
+	PaymentFailure(ctx context.Context, req PaymentStatusRequest) error
 }
 
 type service struct {
@@ -71,6 +73,28 @@ func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClien
 }
 
 // Payment
+func (s *service) PaymentSuccess(ctx context.Context, req PaymentStatusRequest) error {
+	_, err := s.paymentClient.PaymentSuccess(ctx, &payment.PaymentSuccessRequest{
+		OrderId:           req.OrderID,
+		RazorpayPaymentId: req.RazorpayPaymentID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) PaymentFailure(ctx context.Context, req PaymentStatusRequest) error {
+	_, err := s.paymentClient.PaymentFailure(ctx, &payment.PaymentFailureRequest{
+		OrderId:           req.OrderID,
+		RazorpayPaymentId: req.RazorpayPaymentID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *service) ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error) {
 	res, err := s.paymentClient.ProcessPayment(ctx, &payment.ProcessPaymentRequest{
 		BookingId:       int32(bookingId),
