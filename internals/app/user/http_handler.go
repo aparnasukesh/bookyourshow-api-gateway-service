@@ -3,7 +3,6 @@ package user
 import (
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -61,23 +60,25 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	// Payment
 	auth.GET("/payment/status/:transaction_id", h.getTransactionStatus)
 	auth.POST("/payment/:booking_id", h.processPayment)
-	auth.POST("/webhook/razorpay", h.handleRazorpayWebhook)
+	auth.PUT("/payment/success", h.paymentSuccess)
+	auth.PUT("/payment/failure", h.paymentFailure)
 }
 
-// Payment
-func (h *Handler) handleRazorpayWebhook(ctx *gin.Context) {
-	payload, err := io.ReadAll(ctx.Request.Body)
+func (h *Handler) paymentSuccess(ctx *gin.Context) {
+	orderId, _ := ctx.Params.Get("order_id")
+	paymentId, _ := ctx.Params.Get("payment_id")
+	bookingIdstr, _ := ctx.Params.Get("booking_id")
+	bookingId, err := strconv.Atoi(bookingIdstr)
 	if err != nil {
-		h.responseWithError(ctx, http.StatusBadRequest, errors.New("failed to read request body"))
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
 
-	if err := h.svc.HandleRazorpayWebhook(ctx, payload); err != nil {
-		h.responseWithError(ctx, http.StatusInternalServerError, fmt.Errorf("failed to handle webhook: %v", err))
-		return
-	}
+}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Webhook processed successfully"})
+func (h *Handler) paymentFailure(ctx *gin.Context) {
+
 }
 
 func (h *Handler) processPayment(ctx *gin.Context) {
@@ -101,11 +102,7 @@ func (h *Handler) processPayment(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message":     "payment processed succesfully",
-		"transaction": transaction,
-		"redirect":    fmt.Sprintf("http://localhost:8080/gateway/user/webhook/razorpay/%d", transaction.TransactionID),
-	})
+	h.responseWithData(ctx, http.StatusOK, "payment process successfull", transaction)
 }
 
 func (h *Handler) getTransactionStatus(ctx *gin.Context) {

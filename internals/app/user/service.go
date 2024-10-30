@@ -2,8 +2,6 @@ package user
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -50,7 +48,6 @@ type Service interface {
 	// Payment
 	GetTransactionStatus(ctx context.Context, id int) (*TransactionResponse, error)
 	ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error)
-	HandleRazorpayWebhook(ctx context.Context, payload []byte) error
 }
 
 type service struct {
@@ -71,35 +68,6 @@ func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClien
 		bookingClient: bookingClient,
 		paymentClient: paymentClient,
 	}
-}
-
-func (s *service) HandleRazorpayWebhook(ctx context.Context, payload []byte) error {
-	var webhookEvent RazorpayWebhookPayload
-
-	if err := json.Unmarshal(payload, &webhookEvent); err != nil {
-		return fmt.Errorf("error unmarshalling webhook payload: %v", err)
-	}
-	_, err := s.paymentClient.HandleRazorpayWebhook(ctx, &payment.HandleRazorpayWebhookRequest{
-		Event: "",
-		Payload: &payment.RazorpayWebhookPayload{
-			Data: &payment.RazorpayWebhookPayload_Data{
-				TransactionId:   int32(webhookEvent.Data.TransactionID),
-				BookingId:       int32(webhookEvent.Data.BookingID),
-				UserId:          int32(webhookEvent.Data.UserID),
-				PaymentMethodId: int32(webhookEvent.Data.PaymentMethodID),
-				TransactionDate: webhookEvent.Data.TransactionDate,
-				Amount:          webhookEvent.Data.Amount,
-				OrderId:         webhookEvent.Data.OrderID,
-				Status:          webhookEvent.Data.Status,
-			},
-			Message: webhookEvent.Message,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("error sending webhook to payment client: %v", err)
-	}
-
-	return nil
 }
 
 // Payment

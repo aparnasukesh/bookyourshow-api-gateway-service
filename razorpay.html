@@ -1,0 +1,75 @@
+<!-- Razorpay Payment Button -->
+<button id="rzp-button1">Pay with Razorpay</button>
+<input type="text" id="order_id" placeholder="Order id">
+
+<!-- Razorpay Checkout SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    // Razorpay configuration
+    var options = {
+        "key": "rzp_test_uIigFLiWpJLSUD", // Replace with your Key ID from the Razorpay Dashboard
+        "amount": "50000", // Amount in subunits, e.g., 50000 paise for ₹500.00
+        "currency": "INR",
+        "name": "Acme Corp",
+        "description": "Test Transaction",
+        "image": "https://example.com/your_logo",
+        // "order_id": orderID, // Replace with the Order ID generated from your backend
+        "callback_url": "https://eneqd3r9zrjok.x.pipedream.net/", // Replace with your server callback URL
+        "prefill": {
+            "name": "Gaurav Kumar",
+            "email": "gaurav.kumar@example.com",
+            "contact": "9000090000"
+        },
+        "notes": {
+            "address": "Razorpay Corporate Office"
+        },
+        "theme": {
+            "color": "#3399cc"
+        },
+        // Handler function called on successful payment
+        "handler": function (response) {
+            alert("Payment successful!");
+            console.log("Payment ID:", response.razorpay_payment_id);
+            console.log("Order ID:", response.razorpay_order_id);
+            console.log("Signature:", response.razorpay_signature);
+
+            fetch("http://localhost:8080/success", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    payment_id: response.razorpay_payment_id,
+                    order_id: response.razorpay_order_id,
+                    signature: response.razorpay_signature
+                })
+            })
+            .then(res => res.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+        }
+    };
+
+    // Create a new Razorpay instance
+    var rzp1 = new Razorpay(options);
+
+    // Payment failure handler
+    rzp1.on('payment.failed', function (response) {
+        alert("Payment failed!");
+        console.error("Error Code:", response.error.code);
+        console.error("Description:", response.error.description);
+        console.error("Source:", response.error.source);
+        console.error("Step:", response.error.step);
+        console.error("Reason:", response.error.reason);
+        console.error("Order ID:", response.error.metadata.order_id);
+        console.error("Payment ID:", response.error.metadata.payment_id);
+    });
+
+    // Attach the payment click handler
+    document.getElementById('rzp-button1').onclick = function (e) {
+    const orderID = document.getElementById("order_id").value; // Get the value from the input field
+    options.order_id = orderID; 
+    rzp1.open();
+    e.preventDefault();
+}
+</script>

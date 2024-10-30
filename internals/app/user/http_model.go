@@ -252,16 +252,8 @@ type TransactionResponse struct {
 	Status          string  `json:"status"`
 }
 
-type RazorpayWebhookPayload struct {
-	Data struct {
-		TransactionID   int     `json:"transaction_id"`
-		BookingID       int     `json:"booking_id"`
-		UserID          int     `json:"user_id"`
-		PaymentMethodID int     `json:"payment_method_id"`
-		TransactionDate string  `json:"transaction_date"` // You may want to use time.Time for better handling
-		Amount          float64 `json:"amount"`
-		OrderID         string  `json:"order_id"`
-		Status          string  `json:"status"`
-	} `json:"data"`
-	Message string `json:"message"`
+type PaymentStatusRequest struct {
+	BookingID         int    `json:"booking_id"`
+	OrderID           string `json:"order_id"`
+	RazorpayPaymentID string `json:"payment_id"`
 }
