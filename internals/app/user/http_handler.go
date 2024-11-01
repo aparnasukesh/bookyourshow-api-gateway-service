@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -62,8 +63,47 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.POST("/payment/:booking_id", h.processPayment)
 	auth.PUT("/payment/success", h.paymentSuccess)
 	auth.PUT("/payment/failure", h.paymentFailure)
+	// Chat
+	auth.GET("/helpdesk/chat", h.helpDeskChat)
 }
 
+// Chat
+func (h *Handler) helpDeskChat(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
+
+	conn, err := NewUpgrader(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	for {
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			formattedError := ExtractErrorMessage(err)
+			h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+			return
+		}
+		resBody, err := h.svc.HelpDeskChat(ctx, message, userId)
+		if err != nil {
+			formattedError := ExtractErrorMessage(err)
+			h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+			return
+		}
+		if err := conn.WriteMessage(messageType, resBody); err != nil {
+			log.Println("WebSocket write error:", err)
+			break
+		}
+	}
+
+}
+
+// Payment
 func (h *Handler) paymentSuccess(ctx *gin.Context) {
 	orderId := ctx.Query("order_id")
 	paymentId := ctx.Query("payment_id")

@@ -10,6 +10,7 @@ import (
 	"github.com/aparnasukesh/api-gateway/internals/app/user"
 	"github.com/aparnasukesh/api-gateway/pkg/common"
 	grpcclient "github.com/aparnasukesh/api-gateway/pkg/grpcClient"
+	"github.com/aparnasukesh/api-gateway/pkg/rabbitmq"
 )
 
 func InitUserModule(cfg config.Config) (*user.Handler, error) {
@@ -29,8 +30,11 @@ func InitUserModule(cfg config.Config) (*user.Handler, error) {
 	movieBooking, theater, booking, err := grpcclient.NewMovieBookingGrpcClint(cfg.MovieBookingPort)
 
 	paymentClient, err := grpcclient.NewBookingPaymentServiceClient(cfg.PaymentPort)
-
-	svc := user.NewService(pb, auth, movieBooking, theater, booking, paymentClient)
+	rabbitmqConnection, err := rabbitmq.NewRabbitMQConnection()
+	if err != nil {
+		return nil, err
+	}
+	svc := user.NewService(pb, auth, movieBooking, theater, booking, paymentClient, rabbitmqConnection)
 	userHandler := user.NewHttpHandler(svc, authHandler)
 	return userHandler, nil
 }

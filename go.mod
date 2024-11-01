@@ -7,7 +7,9 @@ require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator v9.31.0+incompatible
+	github.com/gorilla/websocket v1.5.3
 	github.com/spf13/viper v1.19.0
+	github.com/streadway/amqp v1.1.0
 	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.2
 )
