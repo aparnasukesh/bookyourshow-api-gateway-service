@@ -256,3 +256,9 @@ type PaymentStatusRequest struct {
 	OrderID           string `json:"order_id"`
 	RazorpayPaymentID string `json:"payment_id"`
 }
+
+type Message struct {
+	UserID  int       `json:"user_id"`
+	Message string    `json:"message"`
+	SentAt  time.Time `json:"sent_at"`
+}

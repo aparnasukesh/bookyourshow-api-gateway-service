@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/aparnasukesh/inter-communication/movie_booking"
 	"github.com/aparnasukesh/inter-communication/payment"
 	"github.com/aparnasukesh/inter-communication/user_admin"
+	"github.com/streadway/amqp"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -50,26 +52,68 @@ type Service interface {
 	ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error)
 	PaymentSuccess(ctx context.Context, req PaymentStatusRequest) error
 	PaymentFailure(ctx context.Context, req PaymentStatusRequest) error
+	// Chat
+	HelpDeskChat(ctx context.Context, message []byte, userId int) ([]byte, error)
 }
 
 type service struct {
-	userAdmin     user_admin.UserServiceClient
-	auth          auth.JWT_TokenServiceClient
-	movieBooking  movie_booking.MovieServiceClient
-	theaterClient movie_booking.TheatreServiceClient
-	bookingClient movie_booking.BookingServiceClient
-	paymentClient payment.PaymentServiceClient
+	userAdmin          user_admin.UserServiceClient
+	auth               auth.JWT_TokenServiceClient
+	movieBooking       movie_booking.MovieServiceClient
+	theaterClient      movie_booking.TheatreServiceClient
+	bookingClient      movie_booking.BookingServiceClient
+	paymentClient      payment.PaymentServiceClient
+	rabbitmqConnection *amqp.Connection
 }
 
-func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient, bookingClient movie_booking.BookingServiceClient, paymentClient payment.PaymentServiceClient) Service {
+func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient, bookingClient movie_booking.BookingServiceClient, paymentClient payment.PaymentServiceClient, rabbitmqConnection *amqp.Connection) Service {
 	return &service{
-		userAdmin:     pb,
-		auth:          auth,
-		movieBooking:  movieBooking,
-		theaterClient: theaterClient,
-		bookingClient: bookingClient,
-		paymentClient: paymentClient,
+		userAdmin:          pb,
+		auth:               auth,
+		movieBooking:       movieBooking,
+		theaterClient:      theaterClient,
+		bookingClient:      bookingClient,
+		paymentClient:      paymentClient,
+		rabbitmqConnection: rabbitmqConnection,
 	}
+}
+
+// Chat
+func (s *service) HelpDeskChat(ctx context.Context, message []byte, userId int) ([]byte, error) {
+	queue, err := RabbitMQQueue(s.rabbitmqConnection, "chat_queue")
+	if err != nil {
+		return nil, err
+	}
+
+	correlationID := randomString(32)
+
+	replyQueue, err := setupReplyQueue(queue)
+	if err != nil {
+		return nil, err
+	}
+
+	defer queue.ch.QueueDelete(replyQueue.Name, false, false, false)
+
+	msgInput := Message{
+		UserID:  userId,
+		Message: string(message),
+		SentAt:  time.Now(),
+	}
+
+	b, err := json.Marshal(msgInput)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := sendMessage(correlationID, queue, b, replyQueue); err != nil {
+		return nil, err
+	}
+
+	msg, err := waitForResponse(queue, replyQueue, correlationID)
+	if err != nil {
+		return nil, err
+	}
+	return msg.Body, nil
 }
 
 // Payment
