@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -56,7 +57,89 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	auth.POST("/booking", h.createBooking)
 	auth.GET("/booking/:id", h.getBookingByID)
 	auth.GET("/booking/user/:user_id", h.listBookingsByUser)
+	// Payment
+	auth.GET("/payment/status/:transaction_id", h.getTransactionStatus)
+	auth.POST("/payment/:booking_id", h.processPayment)
+	auth.PUT("/payment/success", h.paymentSuccess)
+	auth.PUT("/payment/failure", h.paymentFailure)
+}
 
+func (h *Handler) paymentSuccess(ctx *gin.Context) {
+	orderId := ctx.Query("order_id")
+	paymentId := ctx.Query("payment_id")
+
+	data := PaymentStatusRequest{
+		OrderID:           orderId,
+		RazorpayPaymentID: paymentId,
+	}
+	err := h.svc.PaymentSuccess(ctx, data)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "payment successfull")
+
+}
+
+func (h *Handler) paymentFailure(ctx *gin.Context) {
+	orderId, _ := ctx.Params.Get("order_id")
+	paymentId, _ := ctx.Params.Get("payment_id")
+
+	data := PaymentStatusRequest{
+		OrderID:           orderId,
+		RazorpayPaymentID: paymentId,
+	}
+	err := h.svc.PaymentFailure(ctx, data)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	h.response(ctx, http.StatusOK, "payment failed")
+}
+
+func (h *Handler) processPayment(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("Authorization")
+	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
+	if err != nil {
+		h.responseWithError(ctx, http.StatusUnauthorized, errors.New("unauthorized: Invalid token or user ID extraction failed"))
+		return
+	}
+	bookingIdstr := ctx.Param("booking_id")
+	bookingId, err := strconv.Atoi(bookingIdstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	transaction, err := h.svc.ProcessPayment(ctx, bookingId, userId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "payment process successfull", transaction)
+}
+
+func (h *Handler) getTransactionStatus(ctx *gin.Context) {
+	idstr := ctx.Param("transaction_id")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	status, err := h.svc.GetTransactionStatus(ctx, id)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+
+	h.responseWithData(ctx, http.StatusOK, "transaction status retrieved", status)
 }
 
 // Booking
@@ -95,7 +178,6 @@ func (h *Handler) getBookingByID(ctx *gin.Context) {
 	h.responseWithData(ctx, http.StatusOK, "get booking details succesfull", bookings)
 
 }
-
 func (h *Handler) createBooking(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("Authorization")
 	userId, err := h.svc.GetUserIDFromToken(ctx, authorization)
@@ -104,7 +186,7 @@ func (h *Handler) createBooking(ctx *gin.Context) {
 		return
 	}
 	bookingReq := &CreateBookingRequest{}
-	if err := ctx.ShouldBindJSON(&bookingReq); err != nil {
+	if err := ctx.ShouldBindJSON(bookingReq); err != nil {
 		formattedError := ExtractErrorMessage(err)
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
@@ -116,7 +198,11 @@ func (h *Handler) createBooking(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusBadRequest, errors.New(formattedError))
 		return
 	}
-	h.responseWithData(ctx, http.StatusOK, "booking succesfull", booking)
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":  "booking successful",
+		"booking":  booking,
+		"redirect": fmt.Sprintf("http://localhost:8080/gateway/user/payment/%d", booking.BookingID),
+	})
 }
 
 func (h *Handler) register(ctx *gin.Context) {

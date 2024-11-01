@@ -220,3 +220,39 @@ type CreateBookingRequest struct {
 	SeatIDs     []uint32 `json:"seat_ids"`
 	TotalAmount float64  `json:"total_amount"`
 }
+
+type PaymentMethod struct {
+	PaymentMethodID uint   `json:"payment_method_id"`
+	MethodName      string `json:"method_name"`
+}
+type Transaction struct {
+	TransactionID   uint    `json:"transaction_id"`
+	BookingID       uint    `json:"booking_id"`
+	UserID          uint    `json:"user_id"`
+	PaymentMethodID uint    `json:"payment_method_id"`
+	TransactionDate string  `json:"transaction_date"`
+	Amount          float64 `json:"amount"`
+	OrderID         string  `json:"order_id"`
+	Status          string  `json:"status"`
+}
+
+type PaymentRequest struct {
+	BookingID       uint      `json:"booking_id"`
+	UserID          uint      `json:"user_id"`
+	PaymentMethodID uint      `json:"payment_method_id"`
+	TransactionDate time.Time `json:"transaction_date"`
+	Amount          float64   `json:"amount"`
+}
+
+type TransactionResponse struct {
+	TransactionID   uint    `json:"transaction_id"`
+	PaymentMethodID uint    `json:"payment_method_id"`
+	TransactionDate string  `json:"transaction_date"`
+	Amount          float64 `json:"amount"`
+	Status          string  `json:"status"`
+}
+
+type PaymentStatusRequest struct {
+	OrderID           string `json:"order_id"`
+	RazorpayPaymentID string `json:"payment_id"`
+}

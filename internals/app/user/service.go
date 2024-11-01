@@ -7,6 +7,7 @@ import (
 
 	"github.com/aparnasukesh/inter-communication/auth"
 	"github.com/aparnasukesh/inter-communication/movie_booking"
+	"github.com/aparnasukesh/inter-communication/payment"
 	"github.com/aparnasukesh/inter-communication/user_admin"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -44,6 +45,11 @@ type Service interface {
 	CreateBooking(ctx context.Context, bookingReq CreateBookingRequest) (*Booking, error)
 	GetBookingByID(ctx context.Context, id int) (*Booking, error)
 	ListBookingsByUser(ctx context.Context, userId int) ([]Booking, error)
+	// Payment
+	GetTransactionStatus(ctx context.Context, id int) (*TransactionResponse, error)
+	ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error)
+	PaymentSuccess(ctx context.Context, req PaymentStatusRequest) error
+	PaymentFailure(ctx context.Context, req PaymentStatusRequest) error
 }
 
 type service struct {
@@ -52,16 +58,79 @@ type service struct {
 	movieBooking  movie_booking.MovieServiceClient
 	theaterClient movie_booking.TheatreServiceClient
 	bookingClient movie_booking.BookingServiceClient
+	paymentClient payment.PaymentServiceClient
 }
 
-func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient, bookingClient movie_booking.BookingServiceClient) Service {
+func NewService(pb user_admin.UserServiceClient, auth auth.JWT_TokenServiceClient, movieBooking movie_booking.MovieServiceClient, theaterClient movie_booking.TheatreServiceClient, bookingClient movie_booking.BookingServiceClient, paymentClient payment.PaymentServiceClient) Service {
 	return &service{
 		userAdmin:     pb,
 		auth:          auth,
 		movieBooking:  movieBooking,
 		theaterClient: theaterClient,
 		bookingClient: bookingClient,
+		paymentClient: paymentClient,
 	}
+}
+
+// Payment
+func (s *service) PaymentSuccess(ctx context.Context, req PaymentStatusRequest) error {
+	_, err := s.paymentClient.PaymentSuccess(ctx, &payment.PaymentSuccessRequest{
+		OrderId:           req.OrderID,
+		RazorpayPaymentId: req.RazorpayPaymentID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) PaymentFailure(ctx context.Context, req PaymentStatusRequest) error {
+	_, err := s.paymentClient.PaymentFailure(ctx, &payment.PaymentFailureRequest{
+		OrderId:           req.OrderID,
+		RazorpayPaymentId: req.RazorpayPaymentID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) ProcessPayment(ctx context.Context, bookingId int, userId int) (*Transaction, error) {
+	res, err := s.paymentClient.ProcessPayment(ctx, &payment.ProcessPaymentRequest{
+		BookingId:       int32(bookingId),
+		UserId:          int32(userId),
+		Amount:          0,
+		PaymentMethodId: 1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &Transaction{
+		TransactionID:   uint(res.Transaction.TransactionId),
+		BookingID:       uint(res.Transaction.BookingId),
+		UserID:          uint(res.Transaction.UserId),
+		PaymentMethodID: uint(res.Transaction.PaymentMethodId),
+		TransactionDate: res.Transaction.TransactionDate,
+		Amount:          res.Transaction.Amount,
+		OrderID:         res.Transaction.OrderId,
+		Status:          res.Transaction.Status,
+	}, nil
+}
+
+func (s *service) GetTransactionStatus(ctx context.Context, id int) (*TransactionResponse, error) {
+	res, err := s.paymentClient.GetTransactionStatus(ctx, &payment.GetTransactionStatusRequest{
+		TransactionId: int32(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &TransactionResponse{
+		TransactionID:   uint(res.TransactionId),
+		PaymentMethodID: uint(res.PaymentMethodId),
+		TransactionDate: res.TransactionDate,
+		Amount:          res.Amount,
+		Status:          res.Status,
+	}, nil
 }
 
 // Booking
