@@ -72,7 +72,6 @@ func (h *Handler) paymentSuccess(ctx *gin.Context) {
 		OrderID:           orderId,
 		RazorpayPaymentID: paymentId,
 	}
-	fmt.Println("===================", orderId, paymentId)
 	err := h.svc.PaymentSuccess(ctx, data)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
