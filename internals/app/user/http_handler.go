@@ -49,6 +49,7 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.GET("/theater/movie/showdate/showtimes/:movie_id", h.listShowtimeByMovieIdAndShowDate)
 
 	r.GET("/theater/screen/seats/:screen_id", h.listSeatsbyScreenID)
+	r.GET("/theater/screen/available/seats/:screen_id", h.listAvailableSeatsByScreenID)
 	r.GET("/theater/screen/seat/:seat_id", h.getSeatBySeatID)
 
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
@@ -579,6 +580,30 @@ func (h *Handler) listSeatsbyScreenID(ctx *gin.Context) {
 	}
 	h.responseWithData(ctx, http.StatusOK, "list seats by screen id successfully", seats)
 
+}
+
+func (h *Handler) listAvailableSeatsByScreenID(ctx *gin.Context) {
+	screenidstr := ctx.Param("screen_id")
+	screenId, err := strconv.Atoi(screenidstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	showtimeidstr := ctx.Param("screen_id")
+	showtimeId, err := strconv.Atoi(showtimeidstr)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
+		return
+	}
+	seats, err := h.svc.ListAvailableSeatsbyScreenIDAndShowTimeID(ctx, screenId, showtimeId)
+	if err != nil {
+		formattedError := ExtractErrorMessage(err)
+		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
+		return
+	}
+	h.responseWithData(ctx, http.StatusOK, "list seats by screen id successfully", seats)
 }
 
 func (h *Handler) getSeatBySeatID(ctx *gin.Context) {

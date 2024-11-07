@@ -3,7 +3,7 @@ module github.com/aparnasukesh/api-gateway
 go 1.21.1
 
 require (
-	github.com/aparnasukesh/inter-communication v1.7.4
+	github.com/aparnasukesh/inter-communication v1.7.6
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator v9.31.0+incompatible
