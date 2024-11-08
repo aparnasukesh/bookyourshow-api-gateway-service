@@ -49,7 +49,7 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.GET("/theater/movie/showdate/showtimes/:movie_id", h.listShowtimeByMovieIdAndShowDate)
 
 	r.GET("/theater/screen/seats/:screen_id", h.listSeatsbyScreenID)
-	r.GET("/theater/screen/available/seats/:screen_id", h.listAvailableSeatsByScreenID)
+	r.GET("/theater/screen/available/seats/:screen_id/showtime/:showtime_id", h.listAvailableSeatsbyScreenIDAndShowTimeID)
 	r.GET("/theater/screen/seat/:seat_id", h.getSeatBySeatID)
 
 	auth := r.Use(h.authHandler.UserAuthMiddleware())
@@ -582,7 +582,7 @@ func (h *Handler) listSeatsbyScreenID(ctx *gin.Context) {
 
 }
 
-func (h *Handler) listAvailableSeatsByScreenID(ctx *gin.Context) {
+func (h *Handler) listAvailableSeatsbyScreenIDAndShowTimeID(ctx *gin.Context) {
 	screenidstr := ctx.Param("screen_id")
 	screenId, err := strconv.Atoi(screenidstr)
 	if err != nil {
@@ -590,7 +590,7 @@ func (h *Handler) listAvailableSeatsByScreenID(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusInternalServerError, errors.New(formattedError))
 		return
 	}
-	showtimeidstr := ctx.Param("screen_id")
+	showtimeidstr := ctx.Param("showtime_id")
 	showtimeId, err := strconv.Atoi(showtimeidstr)
 	if err != nil {
 		formattedError := ExtractErrorMessage(err)
