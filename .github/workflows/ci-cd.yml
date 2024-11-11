@@ -109,7 +109,6 @@
 #       - name: Apply Kubernetes manifest for API Gateway
 #         run: |
 #           kubectl apply -f k8s/api-gateway.yaml
-
 name: CI/CD Pipeline for API Gateway
 
 on:
@@ -164,9 +163,12 @@ jobs:
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
 
+      - name: Debug - List Root Directory
+        run: ls -R .
+
       - name: Debug - List Files in api-gateway/k8s Directory
-        run: ls -R ../k8s
+        run: ls -R ../api-gateway/k8s
 
       - name: Apply Kubernetes manifest for API Gateway
         run: |
-          kubectl apply -f ../k8s/api-gateway.yaml
+          kubectl apply -f ../api-gateway/k8s/api-gateway.yaml
