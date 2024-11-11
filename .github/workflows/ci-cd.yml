@@ -372,7 +372,7 @@ jobs:
 
       - name: Apply RabbitMQ Kubernetes manifest
         run: |
-          kubectl apply -f k8s/rabbitmq-deployment.yaml
+          kubectl apply -f k8s/rabbitmq-service.yaml
 
       - name: Apply API Gateway Kubernetes manifest
         run: |
