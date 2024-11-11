@@ -2,6 +2,7 @@ package boot
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/aparnasukesh/api-gateway/config"
 	"github.com/aparnasukesh/api-gateway/internals/di"
@@ -16,15 +17,15 @@ type resources struct {
 func Start(cfg config.Config) {
 	res := &resources{cfg: cfg}
 	r := gin.Default()
-	// r.GET("/health", func(c *gin.Context) {
-	// 	c.String(http.StatusOK, "OK")
-	// })
+	r.GET("/health", func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
+	})
 
-	// // Readiness probe
-	// r.GET("/ready", func(c *gin.Context) {
-	// 	// Add additional readiness checks if needed
-	// 	c.String(http.StatusOK, "Ready")
-	// })
+	// Readiness probe
+	r.GET("/ready", func(c *gin.Context) {
+		// Add additional readiness checks if needed
+		c.String(http.StatusOK, "Ready")
+	})
 	res.MountRoutes(r)
 
 	r.Run(":8080")
