@@ -167,7 +167,7 @@ jobs:
         run: ls -R .
 
       - name: Debug - List Files in api-gateway/k8s Directory
-        run: ls -R ../k8s
+        run: ls -R ../
 
       - name: Apply Kubernetes manifest for API Gateway
         run: |
