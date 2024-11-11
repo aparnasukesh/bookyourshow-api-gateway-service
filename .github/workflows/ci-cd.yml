@@ -171,4 +171,5 @@ jobs:
 
       - name: Apply Kubernetes manifest for API Gateway
         run: |
-          kubectl apply -f ../k8s/api-gateway.yaml
+            kubectl apply -f ../../api-gateway/k8s/api-gateway.yaml
+
