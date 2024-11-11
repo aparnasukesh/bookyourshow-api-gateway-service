@@ -232,8 +232,8 @@ jobs:
         run: ls -R .
 
       - name: Debug - List Files in bookyourshow-api-gateway-service/k8s Directory
-        run: ls -R bookyourshow-api-gateway-service/k8s
+        run: ls -R k8s
 
       - name: Apply Kubernetes manifest for API Gateway
         run: |
-          kubectl apply -f bookyourshow-api-gateway-service/k8s/api-gateway.yaml
+          kubectl apply -f k8s/api-gateway.yaml
