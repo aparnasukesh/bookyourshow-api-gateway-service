@@ -24,9 +24,9 @@ spec:
               name: management-port # Port name for Management UI
           env:
             - name: RABBITMQ_DEFAULT_USER
-              value: "user"
+              value: "guest"
             - name: RABBITMQ_DEFAULT_PASS
-              value: "password"
+              value: "guest"
 
 ---
 apiVersion: v1
