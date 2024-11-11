@@ -22,9 +22,9 @@ spec:
             - containerPort: 15672  # Management UI for RabbitMQ
           env:
             - name: RABBITMQ_DEFAULT_USER
-              value: "guest"
+              value: "user"
             - name: RABBITMQ_DEFAULT_PASS
-              value: "guest"
+              value: "password"
 ---
 apiVersion: v1
 kind: Service
@@ -34,11 +34,11 @@ metadata:
     app: rabbitmq
 spec:
   ports:
-    - port: 5672
+    - name: amqp-port        # Required name for AMQP port
+      port: 5672
       targetPort: 5672
-      name: amqp
-    - port: 15672
+    - name: management-port  # Required name for Management UI port
+      port: 15672
       targetPort: 15672
-      name: management
   selector:
     app: rabbitmq
