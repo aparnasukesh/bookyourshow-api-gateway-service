@@ -37,7 +37,7 @@ metadata:
     app: rabbitmqa
 spec:
   ports:
-    - name: amqp-port        # Required name for AMQP port
+    - name: amqp-port       
       port: 5672
       targetPort: 5672
     - name: management-port  # Required name for Management UI port
