@@ -24,25 +24,6 @@ spec:
               name: management-port # Port name for Management UI
           env:
             - name: RABBITMQ_DEFAULT_USER
-              value: "guest"
+              value: "user"  # Changed from 'guest' to 'user'
             - name: RABBITMQ_DEFAULT_PASS
-              value: "guest"
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rabbitmq
-  labels:
-    app: rabbitmqa
-spec:
-  ports:
-    - name: amqp-port       
-      port: 5672
-      targetPort: 5672
-    - name: management-port  # Required name for Management UI port
-      port: 15672
-      targetPort: 15672
-  selector:
-    app: rabbitmq
-  type: ClusterIP  # Use ClusterIP for internal communication, change to LoadBalancer if external access is required
+              value: "password"  # Changed password for better security
