@@ -16,7 +16,7 @@ import (
 // }
 
 func NewUserGrpcClient(port string) (pb.UserServiceClient, error) {
-	address := "user-admin-svc.default.svc.cluster.local:" + port
+	address := "user-admin-svc.default.svc.cluster.local:5050"
 	serviceConfig := `{"loadBalancingPolicy": "round_robin"}`
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(serviceConfig))
 	if err != nil {
