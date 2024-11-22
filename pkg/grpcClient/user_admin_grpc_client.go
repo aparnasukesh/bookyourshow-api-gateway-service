@@ -16,7 +16,7 @@ import (
 // }
 
 func NewUserGrpcClient(port string) (pb.UserServiceClient, error) {
-	address := "user-admin-svc.svc.cluster.local:" + port
+	address := "user-admin-svc.default.svc.cluster.local:" + port
 	serviceConfig := `{"loadBalancingPolicy": "round_robin"}`
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(serviceConfig))
 	if err != nil {
@@ -27,7 +27,7 @@ func NewUserGrpcClient(port string) (pb.UserServiceClient, error) {
 }
 
 func NewAdminGrpcClient(port string) (pb.AdminServiceClient, error) {
-	address := "user-admin-svc.svc.cluster.local:" + port
+	address := "user-admin-svc.default.svc.cluster.local:" + port
 	serviceConfig := `{"loadBalancingPolicy": "round_robin"}`
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(serviceConfig))
 	if err != nil {
@@ -38,7 +38,7 @@ func NewAdminGrpcClient(port string) (pb.AdminServiceClient, error) {
 }
 
 func NewSuperAdminServiceClient(port string) (pb.SuperAdminServiceClient, error) {
-	address := "user-admin-svc.svc.cluster.local:" + port
+	address := "user-admin-svc.default.svc.cluster.local:" + port
 	serviceConfig := `{"loadBalancingPolicy": "round_robin"}`
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(serviceConfig))
 	if err != nil {
