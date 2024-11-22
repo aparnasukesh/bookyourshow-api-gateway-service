@@ -6,7 +6,7 @@ import (
 )
 
 func NewUserGrpcClient(port string) (pb.UserServiceClient, error) {
-	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial("user-admin-svc:"+port, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
@@ -14,7 +14,7 @@ func NewUserGrpcClient(port string) (pb.UserServiceClient, error) {
 }
 
 func NewAdminGrpcClient(port string) (pb.AdminServiceClient, error) {
-	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial("user-admin-svc:"+port, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func NewAdminGrpcClient(port string) (pb.AdminServiceClient, error) {
 }
 
 func NewSuperAdminServiceClient(port string) (pb.SuperAdminServiceClient, error) {
-	conn, err := grpc.Dial("localhost:"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial("user-admin-svc:"+port, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
