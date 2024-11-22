@@ -2,6 +2,7 @@ package grpcclient
 
 import (
 	"log"
+	"time"
 
 	pb "github.com/aparnasukesh/inter-communication/user_admin"
 	"google.golang.org/grpc"
@@ -25,7 +26,7 @@ func NewUserGrpcClient(port string) (pb.UserServiceClient, error) {
 	// 	return nil, err
 	// }
 	address := "user-admin-svc.default.svc.cluster.local:5050"
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock(), grpc.WithTimeout(10*time.Second))
 	if err != nil {
 		log.Printf("Failed to connect to gRPC service: %v", err)
 		return nil, err
