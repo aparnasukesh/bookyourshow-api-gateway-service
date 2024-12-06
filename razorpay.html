@@ -8,7 +8,7 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     var orderID
-    var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFwYXJuYUBnbWFpbC5jb20iLCJleHAiOjE3MzA2MDg3MzcsImlhdCI6MTczMDUyMjMzNywicm9sZSI6MSwidXNlcmlkIjoxMX0.Sii_hj2FwbqsuJ1qUIZ3HeUCBAv02bW8ZCCnFPhO2LQ"
+    var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFwYXJuYXN1a2VzaDA3MjNAZ21haWwuY29tIiwiZXhwIjoxNzMzNTg0MDg5LCJpYXQiOjE3MzM0OTc2ODksInJvbGUiOjEsInVzZXJpZCI6MX0.RBCj5t8MdM-HGZ-nbPZaxAlcMVA6isTJFQ_QjbsJ0as"
 
 
     var options = {
@@ -35,7 +35,7 @@
             console.log("Order ID:", response.razorpay_order_id);
             console.log("Signature:", response.razorpay_signature);
 
-            fetch(`http://bookyourshow.site/gateway/user/payment/success?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
+            fetch(`https://bookyourshow.site/gateway/user/payment/success?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,7 +80,7 @@
                 console.error("Order ID:", response.error.metadata.order_id);
                 console.error("Payment ID:", response.error.metadata.payment_id);
 
-                fetch(`http://bookyourshow.site/gateway/user/payment/failure?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
+                fetch(`https://bookyourshow.site/gateway/user/payment/failure?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
