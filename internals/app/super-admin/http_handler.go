@@ -120,7 +120,7 @@ func (h *Handler) listAllAdmins(ctx *gin.Context) {
 		h.responseWithError(ctx, http.StatusNotFound, errors.New(formattedError))
 		return
 	}
-	h.responseWithData(ctx, http.StatusOK, "list movies succesfully", admins)
+	h.responseWithData(ctx, http.StatusOK, "list admins succesfully", admins)
 
 }
 
