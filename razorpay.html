@@ -35,7 +35,7 @@
             console.log("Order ID:", response.razorpay_order_id);
             console.log("Signature:", response.razorpay_signature);
 
-            fetch(`http://localhost:8080/gateway/user/payment/success?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
+            fetch(`http://bookyourshow.site/gateway/user/payment/success?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,7 +80,7 @@
                 console.error("Order ID:", response.error.metadata.order_id);
                 console.error("Payment ID:", response.error.metadata.payment_id);
 
-                fetch(`http://localhost:8080/gateway/user/payment/failure?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
+                fetch(`http://bookyourshow.site/gateway/user/payment/failure?order_id=${orderID}&payment_id=${response.razorpay_payment_id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
