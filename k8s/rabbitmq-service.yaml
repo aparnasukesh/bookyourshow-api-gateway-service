@@ -1,29 +1,41 @@
-apiVersion: apps/v1
-kind: Deployment
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: rabbitmq
+#   labels:
+#     app: rabbitmq
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: rabbitmq
+#   template:
+#     metadata:
+#       labels:
+#         app: rabbitmq
+#     spec:
+#       containers:
+#         - name: rabbitmq
+#           image: rabbitmq:3-management
+#           ports:
+#             - containerPort: 5672   # AMQP protocol for communication
+#               name: amqp-port       # Port name for AMQP protocol
+#             - containerPort: 15672  # Management UI for RabbitMQ
+#               name: management-port # Port name for Management UI
+#           env:
+#             - name: RABBITMQ_DEFAULT_USER
+#               value: "user"  # Changed from 'guest' to 'user'
+#             - name: RABBITMQ_DEFAULT_PASS
+#               value: "password"  # Changed password for better security
+
+apiVersion: v1
+kind: Service
 metadata:
   name: rabbitmq
-  labels:
-    app: rabbitmq
 spec:
-  replicas: 1
   selector:
-    matchLabels:
-      app: rabbitmq
-  template:
-    metadata:
-      labels:
-        app: rabbitmq
-    spec:
-      containers:
-        - name: rabbitmq
-          image: rabbitmq:3-management
-          ports:
-            - containerPort: 5672   # AMQP protocol for communication
-              name: amqp-port       # Port name for AMQP protocol
-            - containerPort: 15672  # Management UI for RabbitMQ
-              name: management-port # Port name for Management UI
-          env:
-            - name: RABBITMQ_DEFAULT_USER
-              value: "user"  # Changed from 'guest' to 'user'
-            - name: RABBITMQ_DEFAULT_PASS
-              value: "password"  # Changed password for better security
+    app: rabbitmq # Matches the label in your Deployment
+  ports:
+    - protocol: TCP
+      port: 5672
+      targetPort: 5672
