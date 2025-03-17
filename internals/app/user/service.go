@@ -178,7 +178,7 @@ func (s *service) GetTransactionStatus(ctx context.Context, id int) (*Transactio
 	}, nil
 }
 
-// Booking
+// Booking service handler
 func (s *service) ListBookingsByUser(ctx context.Context, userId int) ([]Booking, error) {
 	response, err := s.bookingClient.ListBookingsByUser(ctx, &movie_booking.ListBookingsByUserRequest{
 		UserId: uint32(userId),
@@ -370,7 +370,6 @@ func (s *service) ResetPassword(ctx context.Context, data ResetPassword) error {
 }
 
 // Movies
-
 func (s *service) ListAllMovies(ctx context.Context) ([]Movie, error) {
 	response, err := s.movieBooking.ListMovies(ctx, &movie_booking.ListMoviesRequest{})
 	if err != nil {
