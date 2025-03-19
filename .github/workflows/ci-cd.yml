@@ -143,4 +143,4 @@ jobs:
       # Ensure deployment restarts to pick up new image
       - name: Restart API Gateway Deployment
         run: |
-          kubectl rollout restart deployment api-gateway -n <your-namespace>
+          kubectl rollout restart deployment api-gateway 
