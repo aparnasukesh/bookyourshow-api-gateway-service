@@ -38,7 +38,7 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 
 	auth.POST("/movie/register", h.registerMovie)
 	auth.PUT("/movie/:id", h.updateMovie)
-	auth.POST("/movies", h.listMovies)
+	auth.GET("/movies", h.listMovies)
 	auth.GET("/movie/:id", h.getMovieDetails)
 	auth.DELETE("/movie/:id", h.deleteMovie)
 
