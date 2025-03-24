@@ -1,149 +1,73 @@
-# name: CI/CD Pipeline for API Gateway
+name: CI/CD Pipeline for API Gateway
 
-# on:
-#   push:
-#     branches:
-#       - master
-#   pull_request:
-#     branches:
-#       - master
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
-# jobs:
-#   build-and-push-docker:
-#     name: Build and Push Docker Image
-#     runs-on: ubuntu-latest
+jobs:
+  build-and-push-docker:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: Check out the code
-#         uses: actions/checkout@v3
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v3
 
-#       - name: Log in to Docker Hub
-#         uses: docker/login-action@v2
-#         with:
-#           username: ${{ secrets.DOCKER_USERNAME }}
-#           password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-#       - name: Set up Docker Buildx
-#         uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-#       - name: Build and push Docker image for API Gateway
-#         run: |
-#           docker buildx build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest -f Dockerfile --push .
+      - name: Build and push Docker image for API Gateway
+        run: |
+          docker buildx build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest -f Dockerfile --push .
 
-#   deploy-to-kubernetes:
-#     name: Deploy API Gateway to Kubernetes
-#     needs: build-and-push-docker
-#     runs-on: ubuntu-latest
-#     if: github.ref == 'refs/heads/master'
+  deploy-to-kubernetes:
+    name: Deploy API Gateway to Kubernetes
+    needs: build-and-push-docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
 
-#     steps:
-#       - name: Check out the code
-#         uses: actions/checkout@v3
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v3
 
-#       - name: Configure AWS credentials
-#         env:
-#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#         run: |
-#           aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-#           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-#           aws configure set region ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set region ${{ secrets.AWS_REGION }}
 
-#       - name: Set up kubectl
-#         uses: azure/setup-kubectl@v3
-#         with:
-#           version: 'latest'
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
 
-#       - name: Configure kubectl for EKS
-#         run: |
-#           aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name bookyourshow
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name bookyourshow
 
-#       - name: Debug - List Root Directory
-#         run: ls -R .
+      - name: Debug - List Root Directory
+        run: ls -R .
 
-#       - name: Apply RabbitMQ Kubernetes manifest
-#         run: |
-#           kubectl apply -f k8s/rabbitmq-service.yaml
+      - name: Apply RabbitMQ Kubernetes manifest
+        run: |
+          kubectl apply -f k8s/rabbitmq-service.yaml
 
-#       - name: Apply API Gateway Kubernetes manifest
-#         run: |
-#           kubectl apply -f k8s/api-gateway.yaml
-
-# name: CI/CD Pipeline for API Gateway
-
-# on:
-#   push:
-#     branches:
-#       - master
-#   pull_request:
-#     branches:
-#       - master
-
-# jobs:
-#   build-and-push-docker:
-#     name: Build and Push Docker Image
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Check out the code
-#         uses: actions/checkout@v3
-
-#       - name: Log in to Docker Hub
-#         uses: docker/login-action@v2
-#         with:
-#           username: ${{ secrets.DOCKER_USERNAME }}
-#           password: ${{ secrets.DOCKER_PASSWORD }}
-
-#       - name: Set up Docker Buildx
-#         uses: docker/setup-buildx-action@v2
-
-#       - name: Build and push Docker image for API Gateway
-#         run: |
-#           docker buildx build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest -f Dockerfile --push .
-
-#   deploy-to-kubernetes:
-#     name: Deploy API Gateway to Kubernetes
-#     needs: build-and-push-docker
-#     runs-on: ubuntu-latest
-#     if: github.ref == 'refs/heads/master'
-
-#     steps:
-#       - name: Check out the code
-#         uses: actions/checkout@v3
-
-#       - name: Configure AWS credentials
-#         env:
-#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#         run: |
-#           aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-#           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-#           aws configure set region ${{ secrets.AWS_REGION }}
-
-#       - name: Set up kubectl
-#         uses: azure/setup-kubectl@v3
-#         with:
-#           version: 'latest'
-
-#       - name: Configure kubectl for EKS
-#         run: |
-#           aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name bookyourshow
-
-#       - name: Debug - List Root Directory
-#         run: ls -R .
-
-#       - name: Apply RabbitMQ Kubernetes manifest
-#         run: |
-#           kubectl apply -f k8s/rabbitmq-service.yaml
-
-#       - name: Apply API Gateway Kubernetes manifest
-#         run: |
-#           kubectl apply -f k8s/api-gateway.yaml
-
-#       # Ensure deployment restarts to pick up new image
-#       - name: Restart API Gateway Deployment
-#         run: |
-#           kubectl rollout restart deployment api-gateway 
+      - name: Apply API Gateway Kubernetes manifest
+        run: |
+          kubectl apply -f k8s/api-gateway.yaml
 
 name: CI/CD Pipeline for API Gateway
 
@@ -188,11 +112,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set region ${{ secrets.AWS_REGION }}
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
@@ -203,22 +129,18 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name bookyourshow
 
-      - name: List Repository Files
+      - name: Debug - List Root Directory
         run: ls -R .
 
       - name: Apply RabbitMQ Kubernetes manifest
         run: |
-          kubectl apply -f k8s/rabbitmq-service.yaml --namespace=bookyourshow
+          kubectl apply -f k8s/rabbitmq-service.yaml
 
       - name: Apply API Gateway Kubernetes manifest
         run: |
-          kubectl apply -f k8s/api-gateway.yaml --namespace=bookyourshow
+          kubectl apply -f k8s/api-gateway.yaml
 
+      # Ensure deployment restarts to pick up new image
       - name: Restart API Gateway Deployment
         run: |
-          kubectl rollout restart deployment api-gateway --namespace=bookyourshow
-
-      - name: Verify Deployment Status
-        run: |
-          kubectl get pods --namespace=bookyourshow -o wide
-
+          kubectl rollout restart deployment api-gateway 
