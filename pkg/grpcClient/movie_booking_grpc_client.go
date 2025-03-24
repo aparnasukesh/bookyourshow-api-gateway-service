@@ -9,8 +9,7 @@ import (
 
 func NewMovieBookingGrpcClint(port string) (pb.MovieServiceClient, pb.TheatreServiceClient, pb.BookingServiceClient, error) {
 
-	//address := "movies-booking-svc.default.svc.cluster.local:" + port
-	address := "movies-booking-svc.bookyourshow.svc.cluster.local:" + port
+	address := "movies-booking-svc.default.svc.cluster.local:" + port
 
 	serviceConfig := `{"loadBalancingPolicy": "round_robin"}`
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(serviceConfig))
