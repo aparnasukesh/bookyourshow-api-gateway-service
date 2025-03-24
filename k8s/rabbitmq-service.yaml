@@ -28,17 +28,17 @@
 #             - name: RABBITMQ_DEFAULT_PASS
 #               value: "password"  # Changed password for better security
 
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: rabbitmq
-# spec:
-#   selector:
-#     app: rabbitmq # Matches the label in your Deployment
-#   ports:
-#     - protocol: TCP
-#       port: 5672
-#       targetPort: 5672
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    app: rabbitmq # Matches the label in your Deployment
+  ports:
+    - protocol: TCP
+      port: 5672
+      targetPort: 5672
 
 
 # apiVersion: v1
@@ -109,44 +109,44 @@
 #                   key: password
 
 
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rabbitmq
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: rabbitmq
-  template:
-    metadata:
-      labels:
-        app: rabbitmq
-    spec:
-      containers:
-        - name: rabbitmq
-          image: rabbitmq:3-management
-          ports:
-            - containerPort: 5672  # RabbitMQ AMQP Port
-            - containerPort: 15672 # RabbitMQ Management UI Port
-          env:
-            - name: RABBITMQ_DEFAULT_USER
-              value: "guest"
-            - name: RABBITMQ_DEFAULT_PASS
-              value: "guest"
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: rabbitmq
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: rabbitmq
+#   template:
+#     metadata:
+#       labels:
+#         app: rabbitmq
+#     spec:
+#       containers:
+#         - name: rabbitmq
+#           image: rabbitmq:3-management
+#           ports:
+#             - containerPort: 5672  # RabbitMQ AMQP Port
+#             - containerPort: 15672 # RabbitMQ Management UI Port
+#           env:
+#             - name: RABBITMQ_DEFAULT_USER
+#               value: "guest"
+#             - name: RABBITMQ_DEFAULT_PASS
+#               value: "guest"
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rabbitmq
-spec:
-  selector:
-    app: rabbitmq
-  ports:
-    - protocol: TCP
-      port: 5672
-      targetPort: 5672
-    - protocol: TCP
-      port: 15672
-      targetPort: 15672
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: rabbitmq
+# spec:
+#   selector:
+#     app: rabbitmq
+#   ports:
+#     - protocol: TCP
+#       port: 5672
+#       targetPort: 5672
+#     - protocol: TCP
+#       port: 15672
+#       targetPort: 15672
