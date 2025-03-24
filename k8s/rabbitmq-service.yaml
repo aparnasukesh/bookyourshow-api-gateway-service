@@ -87,22 +87,24 @@
 #               value: "guest"
 #             - name: RABBITMQ_DEFAULT_PASS
 #               value: "guest"
-
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: rabbitmq
+  name: api-gateway
   namespace: bookyourshow
 spec:
-  selector:
-    app: rabbitmq  # Matches the label in your Deployment
-  ports:
-    - name: amqp  # Unique name for the AMQP port
-      protocol: TCP
-      port: 5672
-      targetPort: 5672
-    - name: management  # Unique name for the RabbitMQ Management UI port
-      protocol: TCP
-      port: 15672
-      targetPort: 15672
-  type: ClusterIP  # Change to LoadBalancer if you want external access
+  template:
+    spec:
+      containers:
+        - name: api-gateway
+          env:
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: password
