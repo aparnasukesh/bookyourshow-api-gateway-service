@@ -28,18 +28,18 @@
 #             - name: RABBITMQ_DEFAULT_PASS
 #               value: "password"  # Changed password for better security
 
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: rabbitmq
-#   namespace: bookyourshow
-# spec:
-#   selector:
-#     app: rabbitmq # Matches the label in your Deployment
-#   ports:
-#     - protocol: TCP
-#       port: 5672
-#       targetPort: 5672
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: bookyourshow
+spec:
+  selector:
+    app: rabbitmq # Matches the label in your Deployment
+  ports:
+    - protocol: TCP
+      port: 5672
+      targetPort: 5672
 
 
 # apiVersion: v1
@@ -87,24 +87,24 @@
 #               value: "guest"
 #             - name: RABBITMQ_DEFAULT_PASS
 #               value: "guest"
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api-gateway
-  namespace: bookyourshow
-spec:
-  template:
-    spec:
-      containers:
-        - name: api-gateway
-          env:
-            - name: RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: username
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: password
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: api-gateway
+#   namespace: bookyourshow
+# spec:
+#   template:
+#     spec:
+#       containers:
+#         - name: api-gateway
+#           env:
+#             - name: RABBITMQ_USERNAME
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: rabbitmq-secret
+#                   key: username
+#             - name: RABBITMQ_PASSWORD
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: rabbitmq-secret
+#                   key: password
