@@ -88,7 +88,6 @@
 #             - name: RABBITMQ_DEFAULT_PASS
 #               value: "guest"
 
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -98,10 +97,12 @@ spec:
   selector:
     app: rabbitmq  # Matches the label in your Deployment
   ports:
-    - protocol: TCP
+    - name: amqp  # Unique name for the AMQP port
+      protocol: TCP
       port: 5672
       targetPort: 5672
-    - protocol: TCP
+    - name: management  # Unique name for the RabbitMQ Management UI port
+      protocol: TCP
       port: 15672
-      targetPort: 15672  # Management UI port (optional)
+      targetPort: 15672
   type: ClusterIP  # Change to LoadBalancer if you want external access
