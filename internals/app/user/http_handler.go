@@ -31,7 +31,7 @@ func (h *Handler) MountRoutes(r *gin.RouterGroup) {
 	r.POST("/forgot/password", h.forgotPassword)
 	r.POST("/reset/password", h.resetPassword)
 
-	r.GET("/movies", h.listAllMovies)
+	r.POST("/movies", h.listAllMovies)
 	r.GET("/movie/:id", h.getMovieDetailsByID)
 	r.GET("/movie/name", h.getMovieByName)
 	r.GET("/movie/genre", h.getMoviesByGenre)
