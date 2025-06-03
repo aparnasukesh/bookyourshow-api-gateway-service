@@ -34,12 +34,11 @@ metadata:
   name: rabbitmq
 spec:
   selector:
-    app: rabbitmq # Matches the label in your Deployment
+    app.kubernetes.io/name: rabbitmq  # ← This now matches the Pod
   ports:
     - protocol: TCP
       port: 5672
       targetPort: 5672
-
 
 # apiVersion: v1
 # kind: Service
