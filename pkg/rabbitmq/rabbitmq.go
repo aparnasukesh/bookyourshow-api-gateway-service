@@ -11,5 +11,5 @@ import "github.com/streadway/amqp"
 //	}
 
 func NewRabbitMQConnection() (*amqp.Connection, error) {
-	return amqp.Dial("amqp://admin:admin123@rabbitmq:5672/")
+	return amqp.Dial("amqp://admin:admin123@rabbitmq:15672/")
 }
