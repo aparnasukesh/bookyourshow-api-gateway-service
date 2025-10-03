@@ -74,7 +74,7 @@
 #         run: |
 #           kubectl rollout restart deployment api-gateway
 
-## for GCP-GKE ##
+## for GCP-GKE ###
 name: CI/CD Pipeline for API Gateway
 
 on:
