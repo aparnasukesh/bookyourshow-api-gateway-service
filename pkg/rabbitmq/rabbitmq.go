@@ -1,20 +1,22 @@
 package rabbitmq
 
 import (
+	"os"
+
 	"github.com/streadway/amqp"
 )
 
 // func NewRabbitMQConnection() (*amqp.Connection, error) {
-// 	return amqp.Dial("amqp://guest:guest@rabbitmq:5672/") // Change localhost to rabbitmq
+// 	return amqp.Dial("amqp://guest:guest@localhost:5672/") // Change localhost to rabbitmq
 // }
 
 //	func NewRabbitMQConnection() (*amqp.Connection, error) {
 //		return amqp.Dial("amqp://user:password@rabbitmq:5672/") // Use updated credentials
 //	}
 
-func NewRabbitMQConnection() (*amqp.Connection, error) {
-	return amqp.Dial("amqp://admin:admin123@rabbitmq:5672/") // Updated creadentials
-}
+// func NewRabbitMQConnection() (*amqp.Connection, error) {
+// 	return amqp.Dial("amqp://admin:admin123@rabbitmq:5672/") // Updated creadentials
+// }
 
 // func NewRabbitMQConnection() (*amqp.Connection, error) {
 // 	var conn *amqp.Connection
@@ -32,3 +34,11 @@ func NewRabbitMQConnection() (*amqp.Connection, error) {
 
 // 	return nil, fmt.Errorf("failed to connect to RabbitMQ after retries: %v", err)
 // }
+
+func NewRabbitMQConnection() (*amqp.Connection, error) {
+	rabbitURL := os.Getenv("RABBITMQ_URL")
+	if rabbitURL == "" {
+		rabbitURL = "amqp://admin:admin123@rabbitmq:5672/" // fallback
+	}
+	return amqp.Dial(rabbitURL)
+}
